@@ -8,21 +8,51 @@ interface Point {
   y: number;
 }
 
-// Configuration Constants
-const TRAIL_POINTS_COUNT = 32; // Slightly more points for longer, smoother waves
-const EASE_FACTOR = 0.24;      // Snappy base easing
-const MAX_THICKNESS = 18;      // Thicker ribbon for dramatic aurora folds
-const MIN_THICKNESS = 2.0;
-const SHADOW_BLOW_AMOUNT = 35; // Bright head shadow glow radius
+// ──────────────────────────────────────────────────────────
+// Configuração
+// ──────────────────────────────────────────────────────────
+// IMPORTANTE: esta versão NÃO usa "spring chain" (cada ponto perseguindo o
+// anterior). Em vez disso, gravamos um HISTÓRICO de posições reais do mouse
+// e desenhamos o rastro seguindo exatamente esse caminho. Isso evita o
+// efeito de "elástico esticando em linha reta" e garante que a cauda
+// acompanhe fielmente as curvas que o cursor realmente fez.
+
+const HISTORY_LENGTH = 42;     // quantas posições passadas mantemos (mais = cauda mais longa)
+const INPUT_SMOOTHING = 0.35;  // suaviza o movimento bruto do mouse antes de gravar (0-1, menor = mais suave/atrasado)
+const MAX_THICKNESS = 13;
+const TAPER_POWER = 1.8;       // >1 = afina mais rápido perto da ponta (efeito fumaça leve)
+const FADE_POWER = 1.4;        // >1 = mantém o início mais opaco por mais tempo, dissipando rápido no final
+const SHADOW_BLUR_AMOUNT = 26;
+
+// ──────────────────────────────────────────────────────────
+// Camadas de "cortina" de aurora (o que faltava: profundidade)
+// Cada fita usa o MESMO histórico de posições, mas com um pequeno
+// deslocamento perpendicular ao caminho que ondula com o tempo de forma
+// independente — como cortinas de luz reais se movendo lado a lado.
+// ──────────────────────────────────────────────────────────
+interface StrandConfig {
+  amplitude: number;   // o quanto essa fita se afasta do caminho central (px)
+  frequency: number;   // velocidade da ondulação própria dessa fita
+  phase: number;       // defasagem inicial (pra não ondularem em sincronia)
+  hueShift: number;    // pequeno desvio de cor em relação à fita base
+  widthMul: number;    // multiplicador de espessura
+  alphaMul: number;    // multiplicador de opacidade
+}
+
+const STRANDS: StrandConfig[] = [
+  { amplitude: 0, frequency: 0, phase: 0, hueShift: 0, widthMul: 1.0, alphaMul: 1.0 },
+  { amplitude: 9, frequency: 1.6, phase: 0, hueShift: -18, widthMul: 0.6, alphaMul: 0.55 },
+  { amplitude: 14, frequency: 1.1, phase: Math.PI, hueShift: 28, widthMul: 0.45, alphaMul: 0.4 },
+];
 
 export const CursorAuroraTrail: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { animationsEnabled } = useAnimation();
   const [isMobile, setIsMobile] = useState(false);
 
-  // Animation state refs (avoid triggering React re-renders)
-  const pointsRef = useRef<Point[]>([]);
-  const targetRef = useRef<Point>({ x: 0, y: 0 });
+  const historyRef = useRef<Point[]>([]);
+  const smoothedRef = useRef<Point>({ x: -1000, y: -1000 });
+  const targetRef = useRef<Point>({ x: -1000, y: -1000 });
   const initializedRef = useRef(false);
   const mouseActiveRef = useRef(false);
   const globalAlphaRef = useRef(0);
@@ -30,7 +60,6 @@ export const CursorAuroraTrail: React.FC = () => {
   const idleFramesRef = useRef(0);
   const timeRef = useRef(0);
 
-  // Detect mobile / touch devices
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(
@@ -42,17 +71,7 @@ export const CursorAuroraTrail: React.FC = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Initialize trail points off-screen
   useEffect(() => {
-    pointsRef.current = Array.from({ length: TRAIL_POINTS_COUNT }, () => ({
-      x: -1000,
-      y: -1000,
-    }));
-  }, []);
-
-  // Canvas loop and listeners
-  useEffect(() => {
-    // If animations are toggled off or on mobile, skip rendering the canvas trail
     if (!animationsEnabled || isMobile) return;
 
     const canvas = canvasRef.current;
@@ -62,7 +81,6 @@ export const CursorAuroraTrail: React.FC = () => {
 
     let animationFrameId: number;
 
-    // Handle canvas resizing
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
@@ -70,17 +88,15 @@ export const CursorAuroraTrail: React.FC = () => {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // Track mouse coordinates
     const handleMouseMove = (e: MouseEvent) => {
-      const mouseX = e.clientX;
-      const mouseY = e.clientY;
-      targetRef.current = { x: mouseX, y: mouseY };
+      targetRef.current = { x: e.clientX, y: e.clientY };
 
-      // Snap all points on first movement to avoid trail fly-in from off-screen
       if (!initializedRef.current) {
-        for (let i = 0; i < pointsRef.current.length; i++) {
-          pointsRef.current[i] = { x: mouseX, y: mouseY };
-        }
+        smoothedRef.current = { x: e.clientX, y: e.clientY };
+        historyRef.current = Array.from({ length: HISTORY_LENGTH }, () => ({
+          x: e.clientX,
+          y: e.clientY,
+        }));
         initializedRef.current = true;
       }
 
@@ -95,135 +111,147 @@ export const CursorAuroraTrail: React.FC = () => {
     window.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseleave", handleMouseLeave);
 
-    // Animation Render Loop
     const tick = () => {
-      // 1. Apply transparent decay overlay for motion blur
-      // Using 'destination-out' lets us fade previous frames on a transparent canvas
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.fillStyle = "rgba(0, 0, 0, 0.12)"; // Fades current trail opacity by 12% per frame
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Reset to screen/lighter composite mode for additive aurora colors
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = "screen";
 
-      const points = pointsRef.current;
-      if (points.length === 0) {
-        animationFrameId = requestAnimationFrame(tick);
-        return;
-      }
-
-      // Progress animation time
       timeRef.current += 0.04;
-      const time = timeRef.current;
 
-      // 2. Physics Update: Update head position and apply spring physics + wave drift to tail
-      // Point 0 follows the mouse directly
-      points[0].x = targetRef.current.x;
-      points[0].y = targetRef.current.y;
+      if (initializedRef.current) {
+        // 1. Suaviza ligeiramente a entrada do mouse (só pra tirar tremor de
+        // sensor/tela, NÃO para criar atraso elástico grande)
+        smoothedRef.current.x +=
+          (targetRef.current.x - smoothedRef.current.x) * INPUT_SMOOTHING;
+        smoothedRef.current.y +=
+          (targetRef.current.y - smoothedRef.current.y) * INPUT_SMOOTHING;
 
-      for (let i = 1; i < points.length; i++) {
-        // Tail points ease slightly slower for whip/spring curve feel
-        const ease = EASE_FACTOR * (1 - (i / points.length) * 0.2);
-
-        // Dynamic wave forces simulating air current/aurora plasma ripples:
-        // We use two sine waves at different frequencies for natural, organic sway
-        const ratio = i / points.length;
-        const swayX = Math.sin(time * 1.5 + i * 0.35) * 4.0 * ratio;
-        const swayY = Math.cos(time * 0.9 - i * 0.25) * 3.0 * ratio;
-        const upwardDrift = -0.6 * ratio; // Tail points float gently upwards like smoke
-
-        const targetX = points[i - 1].x + swayX;
-        const targetY = points[i - 1].y + swayY + upwardDrift;
-
-        points[i].x += (targetX - points[i].x) * ease;
-        points[i].y += (targetY - points[i].y) * ease;
+        // 2. Grava a posição atual no histórico (desloca o array)
+        historyRef.current.unshift({
+          x: smoothedRef.current.x,
+          y: smoothedRef.current.y,
+        });
+        if (historyRef.current.length > HISTORY_LENGTH) {
+          historyRef.current.pop();
+        }
       }
 
-      // 3. Fade-in and Fade-out controls
+      // 3. Fade in/out geral conforme atividade do mouse
       if (mouseActiveRef.current) {
         globalAlphaRef.current = Math.min(1, globalAlphaRef.current + 0.08);
       } else {
         idleFramesRef.current += 1;
-        if (idleFramesRef.current > 45) { // Fade out if mouse is idle for 45 frames (~0.75s)
+        if (idleFramesRef.current > 45) {
           globalAlphaRef.current = Math.max(0, globalAlphaRef.current - 0.02);
         }
       }
 
-      // Slowly increment color hue offset
-      hueOffsetRef.current = (hueOffsetRef.current + 0.3) % 360;
-
+      hueOffsetRef.current = (hueOffsetRef.current + 0.25) % 360;
       const alpha = globalAlphaRef.current;
+      const history = historyRef.current;
 
-      if (alpha > 0.01 && initializedRef.current) {
-        // Draw the trail using quadratic curves for perfectly smooth fluid bends (no angular segments)
-        for (let i = 1; i < points.length - 1; i++) {
-          const p1 = points[i - 1];
-          const p2 = points[i];
-          const p3 = points[i + 1];
+      if (alpha > 0.01 && history.length > 2) {
+        const n = history.length;
 
-          // Skip drawing if points are still uninitialized off-screen
-          if (p1.x < -500 || p2.x < -500 || p3.x < -500) continue;
+        // Pré-calcula as normais (perpendiculares) ao longo do caminho,
+        // usadas para deslocar cada fita lateralmente sem alterar a
+        // trajetória central real do mouse.
+        const normals: Point[] = new Array(n);
+        for (let i = 0; i < n; i++) {
+          const a = history[Math.max(0, i - 1)];
+          const b = history[Math.min(n - 1, i + 1)];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const len = Math.hypot(dx, dy) || 1;
+          // perpendicular ao vetor direção (dx,dy) -> (-dy, dx)
+          normals[i] = { x: -dy / len, y: dx / len };
+        }
 
-          const t = i / (points.length - 1); // 0 at head, 1 at tail
-          
-          // Ripple thickness slightly along length to mimic natural auroral folds/depth
-          const foldRipple = Math.sin(time * 2 + i * 0.35) * 1.5;
-          const width = Math.max(1.0, (1 - t) * MAX_THICKNESS + MIN_THICKNESS + foldRipple);
+        for (const strand of STRANDS) {
+          for (let i = 0; i < n - 2; i++) {
+            const t = i / (n - 1); // 0 = ponto mais novo, 1 = mais antigo
 
-          // HSL Aurora color: shift from green (140) to cian, blue, violet (280) + dynamic time shift
-          const hue = (140 + t * 140 + hueOffsetRef.current) % 360;
+            const width = Math.max(
+              0.5,
+              MAX_THICKNESS * Math.pow(1 - t, TAPER_POWER) * strand.widthMul
+            );
+            const segAlpha =
+              alpha * Math.pow(1 - t, FADE_POWER) * strand.alphaMul;
 
-          // Midpoints for smooth C1-continuous bezier connections
-          const midX = (p2.x + p3.x) / 2;
-          const midY = (p2.y + p3.y) / 2;
+            if (segAlpha < 0.01) continue;
 
-          // Draw Outer Glowing Trail Ribbon
-          ctx.beginPath();
-          ctx.moveTo(p1.x, p1.y);
-          ctx.quadraticCurveTo(p2.x, p2.y, midX, midY);
-          ctx.strokeStyle = `hsla(${hue}, 85%, 55%, ${alpha * (1 - t * 0.7) * 0.65})`;
-          ctx.lineWidth = width;
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-          ctx.stroke();
+            // Deslocamento perpendicular ondulante, independente por fita.
+            // Cresce levemente da cabeça pra cauda (ratio) pra parecer que a
+            // "cortina" se abre mais longe do cursor, como no vídeo de referência.
+            const ratio = 0.3 + t * 0.7;
+            const wave =
+              Math.sin(timeRef.current * strand.frequency + i * 0.18 + strand.phase) *
+              strand.amplitude *
+              ratio;
 
-          // Draw a second, thinner, brighter inner core trail for visual depth
-          if (i < Math.floor(points.length * 0.7)) {
+            const n1 = normals[i];
+            const n2 = normals[i + 1];
+            const n3 = normals[Math.min(n - 1, i + 2)];
+
+            const p1 = { x: history[i].x + n1.x * wave, y: history[i].y + n1.y * wave };
+            const p2 = {
+              x: history[i + 1].x + n2.x * wave,
+              y: history[i + 1].y + n2.y * wave,
+            };
+            const p3 = {
+              x: history[i + 2].x + n3.x * wave,
+              y: history[i + 2].y + n3.y * wave,
+            };
+
+            const hue = (150 + t * 130 + hueOffsetRef.current + strand.hueShift + 360) % 360;
+            const lightness = 78 - t * 28;
+            const saturation = 55 + t * 35;
+
+            const midX = (p2.x + p3.x) / 2;
+            const midY = (p2.y + p3.y) / 2;
+
+            // Camada externa (glow difuso) dessa fita
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.quadraticCurveTo(p2.x, p2.y, midX, midY);
-            ctx.strokeStyle = `hsla(${hue}, 100%, 85%, ${alpha * (1 - t) * 0.85})`;
-            ctx.lineWidth = width * 0.3;
+            ctx.strokeStyle = `hsla(${hue}, ${saturation}%, ${lightness}%, ${segAlpha * 0.6})`;
+            ctx.lineWidth = width;
             ctx.lineCap = "round";
+            ctx.lineJoin = "round";
             ctx.stroke();
+
+            // Núcleo interno mais brilhante (só no terço mais próximo da cabeça,
+            // e só na fita central, pra não saturar demais de branco)
+            if (t < 0.35 && strand === STRANDS[0]) {
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.quadraticCurveTo(p2.x, p2.y, midX, midY);
+              ctx.strokeStyle = `hsla(${hue}, ${saturation}%, 93%, ${segAlpha * 0.85})`;
+              ctx.lineWidth = width * 0.32;
+              ctx.lineCap = "round";
+              ctx.stroke();
+            }
           }
         }
 
-        // Draw the white-hot glowing head at the mouse position
-        const headX = points[0].x;
-        const headY = points[0].y;
+        // Cabeça brilhante na posição mais recente
+        const head = history[0];
+        const headHue = (150 + hueOffsetRef.current) % 360;
 
-        if (headX > -500 && headY > -500) {
-          const headHue = (140 + hueOffsetRef.current) % 360;
-          
-          ctx.save();
-          // Apply strong native canvas glow using shadowBlur
-          ctx.shadowBlur = SHADOW_BLOW_AMOUNT;
-          ctx.shadowColor = `hsl(${headHue}, 85%, 55%)`;
-          
-          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-          ctx.beginPath();
-          ctx.arc(headX, headY, 5, 0, Math.PI * 2);
-          ctx.fill();
-          
-          // Outer overlay dot to blend the shadow
-          ctx.fillStyle = `hsla(${headHue}, 100%, 75%, ${alpha * 0.4})`;
-          ctx.beginPath();
-          ctx.arc(headX, headY, 9, 0, Math.PI * 2);
-          ctx.fill();
-          
-          ctx.restore();
-        }
+        ctx.save();
+        ctx.shadowBlur = SHADOW_BLUR_AMOUNT;
+        ctx.shadowColor = `hsl(${headHue}, 80%, 70%)`;
+
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.95})`;
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = `hsla(${headHue}, 90%, 80%, ${alpha * 0.35})`;
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
       }
 
       animationFrameId = requestAnimationFrame(tick);
@@ -231,7 +259,6 @@ export const CursorAuroraTrail: React.FC = () => {
 
     tick();
 
-    // Cleanups
     return () => {
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -242,34 +269,27 @@ export const CursorAuroraTrail: React.FC = () => {
 
   return (
     <>
-      {/* Ambient Aurora Background Glows (Always visible, pulsing on desktop/mobile) */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        {/* Glow 1 (Cyan/Blue) */}
         <div
           className={`absolute -top-1/4 -left-1/4 w-[60vw] h-[60vw] rounded-full bg-cyan-500/10 blur-[120px] transition-all duration-[8000ms] ${
             animationsEnabled ? "animate-pulse" : ""
           }`}
           style={{ animationDuration: "12s" }}
         />
-        {/* Glow 2 (Violet) */}
         <div
           className={`absolute -bottom-1/4 -right-1/4 w-[70vw] h-[70vw] rounded-full bg-violet-600/5 blur-[150px] transition-all duration-[10000ms] ${
             animationsEnabled ? "animate-pulse" : ""
           }`}
           style={{ animationDuration: "16s", animationDelay: "2s" }}
         />
-        {/* Glow 3 (Center Blue) */}
-        <div
-          className="absolute top-1/2 left-1/3 w-[45vw] h-[45vw] rounded-full bg-[#5DADE2]/5 blur-[100px] pointer-events-none"
-        />
+        <div className="absolute top-1/2 left-1/3 w-[45vw] h-[45vw] rounded-full bg-[#5DADE2]/5 blur-[100px] pointer-events-none" />
       </div>
 
-      {/* Interactive Aurora Trail Canvas (Desktop only, animations on) */}
       {animationsEnabled && !isMobile && (
         <canvas
           ref={canvasRef}
           className="fixed inset-0 pointer-events-none z-50 mix-blend-screen"
-          style={{ filter: "blur(4px)" }}
+          style={{ filter: "blur(2.5px)" }}
         />
       )}
     </>
