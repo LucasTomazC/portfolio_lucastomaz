@@ -59,6 +59,8 @@ export const CursorAuroraTrail: React.FC = () => {
   const hueOffsetRef = useRef(0);
   const idleFramesRef = useRef(0);
   const timeRef = useRef(0);
+  const rafIdRef = useRef<number | null>(null);
+  const isSleepingRef = useRef(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -80,6 +82,8 @@ export const CursorAuroraTrail: React.FC = () => {
     if (!ctx) return;
 
     let animationFrameId: number;
+    // tickFn reference for wake-up calls
+    let tickFn: (() => void) | null = null;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -102,6 +106,11 @@ export const CursorAuroraTrail: React.FC = () => {
 
       mouseActiveRef.current = true;
       idleFramesRef.current = 0;
+      // Wake up the rAF loop if it's sleeping
+      if (isSleepingRef.current && tickFn) {
+        isSleepingRef.current = false;
+        rafIdRef.current = requestAnimationFrame(tickFn);
+      }
     };
 
     const handleMouseLeave = () => {
@@ -254,8 +263,17 @@ export const CursorAuroraTrail: React.FC = () => {
         ctx.restore();
       }
 
+      // If fully faded out and idle, enter sleep mode to save CPU/GPU
+      if (globalAlphaRef.current < 0.01 && !mouseActiveRef.current && idleFramesRef.current > 60) {
+        isSleepingRef.current = true;
+        return; // Don't schedule next frame
+      }
+
       animationFrameId = requestAnimationFrame(tick);
+      rafIdRef.current = animationFrameId;
     };
+
+    tickFn = tick;
 
     tick();
 

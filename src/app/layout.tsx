@@ -28,24 +28,32 @@ export const metadata: Metadata = {
     "Next.js",
     "TypeScript",
     "Portfólio",
-    "GTA VI Style Portfolio",
+    "Web Developer Portfolio",
   ],
   authors: [{ name: "João Lucas" }],
   creator: "João Lucas",
+  robots: { index: true, follow: true },
+  alternates: {
+    canonical: "https://lucastomaz.dev",
+  },
   openGraph: {
     type: "website",
     locale: "pt_BR",
     url: "https://lucastomaz.dev",
     title: "João Lucas | Modern Web Developer Portfolio",
     description:
-      "Portfólio interativo de desenvolvimento web completo com animações cinematográficas de alto impacto inspiradas em GTA VI.",
+      "Portfólio interativo de desenvolvimento web com animações cinematográficas imersivas e experiência de alto impacto.",
     siteName: "João Lucas Portfolio",
+    // TODO: Add og:image when ready
+    // images: [{ url: "https://lucastomaz.dev/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "João Lucas | Modern Web Developer Portfolio",
     description:
-      "Portfólio interativo de desenvolvimento web completo com animações cinematográficas de alto impacto inspiradas em GTA VI.",
+      "Portfólio interativo de desenvolvimento web com animações cinematográficas imersivas e experiência de alto impacto.",
+    // TODO: Add twitter:image when ready
+    // images: ["https://lucastomaz.dev/og-image.png"],
   },
 };
 
@@ -60,6 +68,9 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full bg-[#050505] text-white flex flex-col font-sans selection:bg-[#5DADE2] selection:text-black">
+        <a href="#home" className="skip-to-content">
+          Pular para o conteúdo
+        </a>
         <AnimationProvider>
           <CursorAuroraTrail />
           {children}
