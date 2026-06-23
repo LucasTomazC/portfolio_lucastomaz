@@ -1,24 +1,25 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAnimation } from "@/context/AnimationContext";
 import { ExternalLink } from "lucide-react";
 import { GitHubIcon } from "@/components/icons";
 import Image from "next/image";
 
+// Utilitário simples para mesclar classes CSS
+const cn = (...classes: (string | undefined | null | false)[]) =>
+  classes.filter(Boolean).join(" ");
+
 interface Project {
   id: number;
   title: string;
-  shortDesc: string;
-  longDesc: string;
-  techs: string[];
-  challenges: string;
-  architecture: string;
-  image: string;
-  siteUrl: string;
+  subtitle: string;
+  description: string;
+  image?: string;
+  siteUrl?: string;
   githubUrl?: string;
-  meta: string;
+  isActive: boolean;
   comingSoon?: boolean;
 }
 
@@ -26,197 +27,236 @@ const PROJECTS_DATA: Project[] = [
   {
     id: 1,
     title: "Jennyfer Felicio",
-    shortDesc: "Landing Page profissional para maquiadora, focada em conversão e apresentação visual elegante do portfólio de beleza.",
-    longDesc: "Uma landing page imersiva desenvolvida para a maquiadora Jennyfer Felicio. O projeto destaca o trabalho artístico da profissional com um design visual sofisticado, galeria de portfólio e integração direta com WhatsApp para agendamentos.",
-    techs: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
-    architecture: "Aplicação estática otimizada com Next.js, deploy via Vercel com CDN global. Design responsivo mobile-first com animações suaves.",
-    challenges: "Criar uma experiência visual premium que refletisse a sofisticação do trabalho da maquiadora, garantindo carregamento rápido das imagens em alta resolução.",
+    subtitle: "Landing Page Makeup",
+    description: "Landing Page profissional para maquiadora, focada em conversão e apresentação visual elegante.",
     image: "/landingpage_makeup.png",
     siteUrl: "https://jennyferfelicio.vercel.app",
     githubUrl: "https://github.com/LucasTomazC",
-    meta: "Projeto 1",
+    isActive: true,
   },
   {
     id: 2,
     title: "Treinador Tomaz",
-    shortDesc: "Portfólio web para personal trainer com design impactante, seções de planos, resultados e depoimentos.",
-    longDesc: "Um portfólio web de alto impacto visual desenvolvido para o personal trainer Treinador Tomaz. O site combina tipografia bold com animações dinâmicas para transmitir energia e profissionalismo, incluindo seções de diferenciais, planos, resultados e depoimentos.",
-    techs: ["Next.js", "TypeScript", "Tailwind CSS", "GSAP"],
-    architecture: "Aplicação SSG com Next.js e deploy otimizado na Vercel. Animações de scroll com GSAP ScrollTrigger e design responsivo.",
-    challenges: "Desenvolver um design com forte identidade visual esportiva que transmitisse energia e confiança, com performance excelente em dispositivos móveis.",
+    subtitle: "Personal Trainer Portfolio",
+    description: "Portfólio web para personal trainer com design impactante, seções de planos e depoimentos.",
     image: "/landingpage_personaltomaz.png",
     siteUrl: "https://treinadortomaz.vercel.app",
     githubUrl: "https://github.com/LucasTomazC",
-    meta: "Projeto 2",
+    isActive: true,
   },
   {
     id: 3,
     title: "Gestão Financeira",
-    shortDesc: "Plataforma de gestão financeira pessoal com dashboards analíticos, controle de receitas/despesas e relatórios automatizados.",
-    longDesc: "Uma plataforma completa de gestão financeira em fase final de testes. O sistema permite controle detalhado de receitas e despesas, categorização inteligente de transações, dashboards com gráficos analíticos e geração de relatórios financeiros.",
-    techs: ["Next.js", "TypeScript", "Prisma", "PostgreSQL", "Tailwind CSS"],
-    architecture: "Full-stack com Next.js App Router, Server Actions para mutações seguras, banco de dados PostgreSQL com Prisma ORM e autenticação robusta.",
-    challenges: "Implementar um sistema de categorização automática de transações e dashboards com gráficos responsivos que funcionem em tempo real.",
+    subtitle: "Fintech Platform",
+    description: "Plataforma de gestão financeira pessoal com dashboards analíticos e controle de receitas.",
     image: "/coming_soon.png",
     siteUrl: "#",
-    meta: "Projeto 3",
+    githubUrl: "",
+    isActive: true,
     comingSoon: true,
   },
+  { id: 4, title: "Em breve", subtitle: "PROJETO 04", description: "Novidades em desenvolvimento", isActive: false },
+  { id: 5, title: "Em breve", subtitle: "PROJETO 05", description: "Novidades em desenvolvimento", isActive: false },
+  { id: 6, title: "Em breve", subtitle: "PROJETO 06", description: "Novidades em desenvolvimento", isActive: false },
+  { id: 7, title: "Em breve", subtitle: "PROJETO 07", description: "Novidades em desenvolvimento", isActive: false },
+  { id: 8, title: "Em breve", subtitle: "PROJETO 08", description: "Novidades em desenvolvimento", isActive: false },
+  { id: 9, title: "Em breve", subtitle: "PROJETO 09", description: "Novidades em desenvolvimento", isActive: false },
 ];
 
 export const Projects: React.FC = () => {
   const { animationsEnabled } = useAnimation();
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState(0);
+  const [activeRow, setActiveRow] = useState(1);
+  const [activeCol, setActiveCol] = useState(1);
 
-  useEffect(() => {
-    const updateHeight = () => {
-      if (timelineRef.current) {
-        const rect = timelineRef.current.getBoundingClientRect();
-        setHeight(rect.height);
-      }
-    };
-    updateHeight();
+  const gridTemplateRows = [
+    activeRow === 0 ? "3.2fr" : "1fr",
+    activeRow === 1 ? "3.2fr" : "1fr",
+    activeRow === 2 ? "3.2fr" : "1fr",
+  ].join(" ");
 
-    // Measure on window load and after a short timeout to handle Next.js hydration shifts
-    const timer = setTimeout(updateHeight, 500);
+  const gridTemplateColumns = [
+    activeCol === 0 ? "3.2fr" : "1fr",
+    activeCol === 1 ? "3.2fr" : "1fr",
+    activeCol === 2 ? "3.2fr" : "1fr",
+  ].join(" ");
 
-    window.addEventListener("resize", updateHeight);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", updateHeight);
-    };
-  }, []);
-
-  const { scrollYProgress } = useScroll({
-    target: timelineRef,
-    offset: ["start 10%", "end 50%"],
-  });
-
-  const heightTransform = useTransform(scrollYProgress, [0, 1], [0, height]);
-  const opacityTransform = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
-
-  const maskStyle = {
-    WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
-    maskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)"
-  };
+  const transitionConfig = animationsEnabled
+    ? ({ type: "spring", stiffness: 320, damping: 28, mass: 0.8 } as const)
+    : ({ duration: 0 } as const);
 
   return (
-    <div id="projetos" className="w-full bg-[#050505] border-t border-white/5 font-sans md:px-10">
-      {/* Title Section */}
-      <div className="mx-auto max-w-7xl px-6 py-20 md:px-8 lg:px-10 text-left">
-        <span className="text-xs uppercase tracking-widest font-display text-[#5DADE2] font-semibold">
-          Portfólio
-        </span>
-        <h2 className="text-3xl md:text-5xl font-display font-bold text-white uppercase mt-2 tracking-tight">
-          Arquivos de <span className="text-white/20">Projetos</span>
-        </h2>
-        <p className="max-w-md text-sm text-neutral-400 mt-4 leading-relaxed font-sans">
-          Uma linha do tempo interativa detalhando alguns dos projetos de engenharia web desenvolvidos do design à produção.
-        </p>
-      </div>
+    <section id="projetos" className="w-full bg-[#050505] border-t border-white/5 font-sans py-24 md:py-32 px-6 md:px-12 relative z-10">
+      <div className="max-w-6xl mx-auto">
+        {/* Seção de Cabeçalho */}
+        <div className="mb-16 md:mb-24 text-center md:text-left">
+          <span className="text-xs uppercase tracking-widest font-display text-brand font-semibold">
+            Portfólio
+          </span>
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-white uppercase mt-2 tracking-tight">
+            Arquivos de <span className="text-white/20">Projetos</span>
+          </h2>
+          <p className="max-w-md text-sm text-neutral-400 mt-4 leading-relaxed font-sans mx-auto md:mx-0">
+            Uma grade interativa e dinâmica exibindo os projetos desenvolvidos, unindo design de ponta e engenharia de software robusta.
+          </p>
+        </div>
 
-      {/* Timeline Section */}
-      <div ref={timelineRef} className="relative z-0 mx-auto max-w-7xl pb-20">
-        {PROJECTS_DATA.map((project) => (
-          <div
-            key={project.id}
-            className="flex justify-start pt-10 md:gap-10 md:pt-40"
-          >
-            {/* Left Sticky Column (Title on desktop) */}
-            <div className="sticky top-40 z-40 flex max-w-xs flex-col items-center self-start md:w-full md:flex-row lg:max-w-sm">
-              {/* Point on timeline line */}
-              <div className="absolute left-3 flex size-10 items-center justify-center rounded-full bg-[#050505] border border-white/10 md:left-3">
-                <div className="size-4 rounded-full border border-neutral-700 bg-neutral-800" />
-              </div>
-              
-              {/* Sticky Title (Desktop Only) */}
-              <h3 className="hidden text-xl font-bold md:block md:pl-20 md:text-4xl lg:text-5xl uppercase font-display text-white tracking-tight">
-                {project.title}
-              </h3>
-            </div>
-
-            {/* Right Column (Content) */}
-            <div className="relative pl-20 pr-4 md:pl-4 w-full text-left space-y-6">
-              {/* Inline Title (Mobile Only) */}
-              <h3 className="block text-2xl font-bold md:hidden uppercase font-display text-white tracking-tight">
-                {project.title}
-              </h3>
-
-              {/* Image Banner */}
-              <div className="h-52 md:h-80 w-full max-w-2xl bg-[#0d0d0d] border border-white/5 relative overflow-hidden group hover:border-[#5DADE2]/10 transition-colors">
-                <Image
-                  src={project.image}
-                  alt={`Screenshot do projeto ${project.title}`}
-                  fill
-                  className="object-cover object-top opacity-80 group-hover:opacity-100 transition-all duration-500"
-                  sizes="(max-width: 768px) 100vw, 600px"
-                />
-                {project.comingSoon && (
-                  <div className="absolute inset-0 bg-[#050505]/60 flex items-center justify-center z-10">
-                    <span className="text-xs font-display font-bold uppercase tracking-widest text-[#5DADE2] border border-[#5DADE2]/30 px-4 py-2 bg-[#050505]/80 backdrop-blur-sm">
-                      Em Breve
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Project description (short) */}
-              <p className="max-w-2xl text-xs md:text-sm text-neutral-400 font-sans leading-relaxed">
-                {project.shortDesc}
-              </p>
-
-              {/* Actions direct links */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                {project.githubUrl && (
-                  <a
-                    href={project.githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border border-white/10 hover:border-white/20 text-white font-semibold text-[10px] tracking-wider uppercase transition-all duration-300 hover:bg-neutral-800 rounded-none"
-                  >
-                    <GitHubIcon className="w-3.5 h-3.5 fill-current" />
-                    Código Fonte
-                  </a>
-                )}
-
-                {!project.comingSoon && (
-                  <a
-                    href={project.siteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 bg-[#5DADE2] hover:bg-[#4ea0d6] text-black font-semibold text-[10px] tracking-wider uppercase transition-all duration-300 hover:shadow-[0_0_15px_rgba(93,173,226,0.2)] rounded-none"
-                  >
-                    Visitar Site
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {/* Scroll Progress Line */}
-        <div
-          style={{ height: `${height}px`, ...maskStyle }}
-          className="absolute top-0 left-8 w-[2px] overflow-hidden bg-gradient-to-b from-transparent via-neutral-800 to-transparent to-99% md:left-8"
-        >
-          {animationsEnabled ? (
+        {/* Grade Bento Interativa */}
+        <div className="w-full flex justify-center">
+          <div className="w-full max-w-4xl aspect-[4/3] min-h-[450px] md:min-h-[600px] relative">
             <motion.div
-              style={{
-                height: heightTransform,
-                opacity: opacityTransform,
+              className="grid gap-3 w-full h-full"
+              animate={{
+                gridTemplateRows,
+                gridTemplateColumns,
               }}
-              className="absolute inset-x-0 top-0 w-[2px] rounded-full bg-gradient-to-b from-[#5DADE2] via-[#3498DB] to-transparent"
-            />
-          ) : (
-            <div
-              style={{ height: `${height}px` }}
-              className="absolute inset-x-0 top-0 w-[2px] rounded-full bg-gradient-to-b from-[#5DADE2] via-[#3498DB] to-transparent opacity-60"
-            />
-          )}
+              onMouseLeave={() => {
+                setActiveRow(1);
+                setActiveCol(1);
+              }}
+              transition={transitionConfig}
+            >
+              {PROJECTS_DATA.map((project, i) => {
+                const row = Math.floor(i / 3);
+                const col = i % 3;
+                const isActive = activeRow === row && activeCol === col;
+
+                return (
+                  <motion.div
+                    key={project.id}
+                    layout
+                    className={cn(
+                      "relative overflow-hidden cursor-pointer group border shadow-lg transition-shadow duration-500 rounded-none bg-[#09090b]",
+                      isActive 
+                        ? "z-20 border-brand/40 shadow-2xl scale-[1.01]" 
+                        : "z-0 border-white/5 opacity-60 hover:opacity-100"
+                    )}
+                    onMouseEnter={() => {
+                      setActiveRow(row);
+                      setActiveCol(col);
+                    }}
+                    onClick={() => {
+                      setActiveRow(row);
+                      setActiveCol(col);
+                    }}
+                  >
+                    {project.isActive && project.image ? (
+                      /* Projetos ativos com imagem de fundo */
+                      <>
+                        <Image
+                          src={project.image}
+                          alt={project.title}
+                          fill
+                          className={cn(
+                            "object-cover object-top transition-transform duration-700 pointer-events-none",
+                            isActive ? "scale-105 opacity-90" : "scale-100 opacity-60 group-hover:scale-105 group-hover:opacity-85"
+                          )}
+                          sizes="(max-width: 768px) 100vw, 400px"
+                          priority={i < 3}
+                        />
+                        {/* Overlay escuro para legibilidade */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-10 pointer-events-none" />
+                      </>
+                    ) : (
+                      /* Projetos "Em breve" com gradiente abstrato escuro e pulso de luz */
+                      <div className="absolute inset-0 bg-gradient-to-br from-[#0c0c0e] via-[#050505] to-[#121217] flex flex-col justify-between p-4 pointer-events-none select-none">
+                        {/* Linhas de blueprint para dar um aspecto tech */}
+                        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none opacity-40" />
+                        
+                        {/* Indicador pulsante premium */}
+                        <div className="flex justify-between items-start z-10 w-full">
+                          <div className="flex items-center gap-1.5">
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand/40 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand"></span>
+                            </span>
+                            <span className="text-[8px] font-mono text-white/35 uppercase tracking-wider">Breve</span>
+                          </div>
+                          <span className="text-[8px] font-mono text-white/20">0{project.id} {"// BACKLOG"}</span>
+                        </div>
+
+                        {/* Brilho sutil no centro */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-brand/5 blur-[35px] pointer-events-none group-hover:bg-brand/10 transition-colors duration-500" />
+                      </div>
+                    )}
+
+                    {/* Camada de Texto e Conteúdo */}
+                    <div className="absolute inset-0 z-20 flex flex-col justify-end p-4 md:p-5 select-none">
+                      <p className="text-brand text-[8px] md:text-[9px] font-mono uppercase tracking-[0.15em] mb-1 font-semibold">
+                        {project.subtitle}
+                      </p>
+                      
+                      <h3 className="text-white text-xs md:text-sm font-display font-bold uppercase tracking-wide truncate max-w-[90%] group-hover:text-brand transition-colors duration-300">
+                        {project.title}
+                      </h3>
+
+                      {/* Detalhes do projeto aberto (com animação Framer Motion) */}
+                      <AnimatePresence>
+                        {isActive && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            className="overflow-hidden mt-1 md:mt-2 text-left"
+                          >
+                            <p className="text-[10px] md:text-xs text-neutral-400 font-sans leading-relaxed mb-3 line-clamp-2">
+                              {project.description}
+                            </p>
+
+                            {/* Botões de Ação Discretos (Opção A) */}
+                            <div className="flex flex-wrap items-center gap-2">
+                              {project.githubUrl && (
+                                <a
+                                  href={project.githubUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-neutral-900/90 border border-white/10 hover:border-white/20 text-white font-semibold text-[8px] md:text-[9px] tracking-wider uppercase transition-all duration-300 hover:bg-neutral-800 rounded-none cursor-pointer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <GitHubIcon className="w-3 h-3 fill-current" />
+                                  GitHub
+                                </a>
+                              )}
+                              
+                              {project.comingSoon ? (
+                                <span className="text-[8px] md:text-[9px] font-mono text-brand border border-brand/30 bg-brand/5 px-2 py-1 uppercase tracking-wider font-semibold">
+                                  Em Breve
+                                </span>
+                              ) : (
+                                project.siteUrl && project.siteUrl !== "#" && (
+                                  <a
+                                    href={project.siteUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1 px-2.5 py-1.5 bg-brand text-black font-semibold text-[8px] md:text-[9px] tracking-wider uppercase transition-all duration-300 hover:bg-brand/90 hover:shadow-[0_0_12px_rgba(93,173,226,0.35)] rounded-none cursor-pointer"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    Visitar
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                )
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Efeito de Borda Brilhante no Card Ativo */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="active-glow"
+                        className="absolute inset-0 ring-1 ring-brand/40 pointer-events-none z-30"
+                        transition={transitionConfig}
+                      />
+                    )}
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
