@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import { AnimationProvider } from "@/context/AnimationContext";
-import { CursorAuroraTrail } from "@/components/CursorAuroraTrail";
+import { FluidCursor } from "@/components/FluidCursor";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -72,7 +72,7 @@ export default function RootLayout({
           Pular para o conteúdo
         </a>
         <AnimationProvider>
-          <CursorAuroraTrail />
+          <FluidCursor />
           {children}
         </AnimationProvider>
       </body>

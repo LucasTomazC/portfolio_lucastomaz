@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAnimation } from "@/context/AnimationContext";
 import { Layers, Server, Database, Settings } from "lucide-react";
@@ -481,13 +481,10 @@ export const Stacks: React.FC = () => {
     return () => window.removeEventListener("resize", updateSize);
   }, []);
 
-  // Filter tech by current category
-  const activeTechs = TECH_DATA.filter((t) => t.category === activeTab);
+  // Filter tech by current category (memoized to prevent infinite useEffect triggers)
+  const activeTechs = useMemo(() => TECH_DATA.filter((t) => t.category === activeTab), [activeTab]);
 
-  // Reset rotation angle on category change
-  useEffect(() => {
-    setRotationAngle(0);
-  }, [activeTab]);
+  // Reset rotation angle on category change has been moved directly to the tab click handlers.
 
   // RequestAnimationFrame loop for auto rotation and inertia drag
   useEffect(() => {
@@ -527,6 +524,7 @@ export const Stacks: React.FC = () => {
       }
     });
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHoveredTech(activeTechs[closestIndex]);
   }, [rotationAngle, activeTab, activeTechs]);
 
@@ -600,7 +598,10 @@ export const Stacks: React.FC = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setRotationAngle(0);
+                }}
                 className={`flex items-center gap-2 px-5 py-3 text-xs font-display font-semibold uppercase tracking-wider transition-all duration-300 rounded-none w-full sm:w-auto justify-center ${
                   isActive
                     ? "bg-[#5DADE2] text-black shadow-[0_0_20px_rgba(93,173,226,0.2)]"

@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import Lenis from "lenis";
+// @ts-expect-error - GSAP ScrollTrigger might miss type declarations in some setups
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useAnimation } from "@/context/AnimationContext";
 import { Header } from "@/components/Header";
