@@ -125,7 +125,7 @@ export const Projects: React.FC = () => {
                     key={project.id}
                     layout
                     className={cn(
-                      "relative overflow-hidden cursor-pointer group border shadow-lg transition-shadow duration-500 rounded-none bg-[#09090b]",
+                      "relative overflow-hidden cursor-pointer group border shadow-lg transition-shadow duration-500 rounded-xl bg-[#09090b]",
                       isActive 
                         ? "z-20 border-brand/40 shadow-2xl scale-[1.01]" 
                         : "z-0 border-white/5 opacity-60 hover:opacity-100"
@@ -246,7 +246,7 @@ export const Projects: React.FC = () => {
                     {isActive && (
                       <motion.div
                         layoutId="active-glow"
-                        className="absolute inset-0 ring-1 ring-brand/40 pointer-events-none z-30"
+                        className="absolute inset-0 ring-1 ring-brand/40 pointer-events-none z-30 rounded-xl"
                         transition={transitionConfig}
                       />
                     )}
