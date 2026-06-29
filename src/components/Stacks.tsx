@@ -455,6 +455,7 @@ export const Stacks: React.FC = () => {
   // Math orbital settings responsive
   const [radius, setRadius] = useState({ x: 300, y: 75 });
   const [rotationAngle, setRotationAngle] = useState(0);
+  const [isMobileSize, setIsMobileSize] = useState(true);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -468,6 +469,7 @@ export const Stacks: React.FC = () => {
   // Resize listener
   useEffect(() => {
     const updateSize = () => {
+      setIsMobileSize(window.innerWidth < 768);
       if (window.innerWidth < 640) {
         setRadius({ x: 130, y: 35 }); // Mobile
       } else if (window.innerWidth < 1024) {
@@ -618,7 +620,7 @@ export const Stacks: React.FC = () => {
         {/* Dynamic Display Area */}
         <div className="relative min-h-[460px] w-full flex flex-col items-center justify-between">
           
-          {animationsEnabled ? (
+          {(animationsEnabled && !isMobileSize) ? (
             /* ================= 3D INTERACTIVE ORBITAL LAYOUT ================= */
             <div
               ref={containerRef}

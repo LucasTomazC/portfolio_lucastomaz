@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAnimation } from "@/context/AnimationContext";
 import { GraduationCap, Clock } from "lucide-react";
 import Image from "next/image";
 
@@ -54,7 +53,6 @@ const CERTIFICATES_DATA: Certificate[] = [
 ];
 
 export const Certificates: React.FC = () => {
-  const { animationsEnabled } = useAnimation();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (

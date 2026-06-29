@@ -17,6 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://lucastomaz.dev"),
   title: "João Lucas | Modern Web Developer Portfolio",
   description:
     "Portfólio de João Lucas, Desenvolvedor Web especializado em criar soluções digitais completas de ponta a ponta (Next.js, TypeScript, Node.js, PostgreSQL).",
@@ -44,16 +45,14 @@ export const metadata: Metadata = {
     description:
       "Portfólio interativo de desenvolvimento web com animações cinematográficas imersivas e experiência de alto impacto.",
     siteName: "João Lucas Portfolio",
-    // TODO: Add og:image when ready
-    // images: [{ url: "https://lucastomaz.dev/og-image.png", width: 1200, height: 630 }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "João Lucas | Modern Web Developer Portfolio" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "João Lucas | Modern Web Developer Portfolio",
     description:
       "Portfólio interativo de desenvolvimento web com animações cinematográficas imersivas e experiência de alto impacto.",
-    // TODO: Add twitter:image when ready
-    // images: ["https://lucastomaz.dev/og-image.png"],
+    images: ["/og-image.png"],
   },
 };
 

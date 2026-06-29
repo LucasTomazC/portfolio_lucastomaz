@@ -100,9 +100,79 @@ export const Projects: React.FC = () => {
           </p>
         </div>
 
-        {/* Grade Bento Interativa */}
-        <div className="w-full flex justify-center">
-          <div className="w-full max-w-4xl aspect-[4/3] min-h-[450px] md:min-h-[600px] relative">
+        {/* Mobile Layout (Responsive Vertical List) */}
+        <div className="block md:hidden w-full space-y-4">
+          {PROJECTS_DATA.map((project) => (
+            <div
+              key={`mobile-${project.id}`}
+              className={cn(
+                "relative overflow-hidden border shadow-lg rounded-xl bg-[#09090b] border-white/5 p-4 flex flex-col gap-4"
+              )}
+            >
+              {project.isActive && project.image && (
+                <div className="relative w-full h-44 rounded-lg overflow-hidden">
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    className="object-cover object-top"
+                    sizes="100vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                </div>
+              )}
+              
+              <div className="flex flex-col justify-between flex-1">
+                <div>
+                  <p className="text-brand text-[9px] font-mono uppercase tracking-[0.15em] mb-1 font-semibold">
+                    {project.subtitle}
+                  </p>
+                  <h3 className="text-white text-sm font-display font-bold uppercase tracking-wide">
+                    {project.title}
+                  </h3>
+                  <p className="text-xs text-neutral-400 font-sans leading-relaxed mt-2">
+                    {project.description}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 mt-4">
+                  {project.githubUrl && (
+                    <a
+                      href={project.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 border border-white/10 text-white font-semibold text-[9px] tracking-wider uppercase cursor-pointer"
+                    >
+                      <GitHubIcon className="w-3.5 h-3.5 fill-current" />
+                      GitHub
+                    </a>
+                  )}
+                  {project.comingSoon ? (
+                    <span className="text-[9px] font-mono text-brand border border-brand/30 bg-brand/5 px-2.5 py-1.5 uppercase tracking-wider font-semibold">
+                      Em Breve
+                    </span>
+                  ) : (
+                    project.siteUrl && project.siteUrl !== "#" && (
+                      <a
+                        href={project.siteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-brand text-black font-semibold text-[9px] tracking-wider uppercase cursor-pointer"
+                      >
+                        Visitar
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop Layout (Interactive Bento Grid) */}
+        <div className="hidden md:flex justify-center">
+          <div className="w-full max-w-4xl aspect-[4/3] min-h-[600px] relative">
             <motion.div
               className="grid gap-3 w-full h-full"
               animate={{
@@ -210,7 +280,7 @@ export const Projects: React.FC = () => {
                                   href={project.githubUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1 px-2.5 py-1.5 bg-neutral-900/90 border border-white/10 hover:border-white/20 text-white font-semibold text-[8px] md:text-[9px] tracking-wider uppercase transition-all duration-300 hover:bg-neutral-800 rounded-none cursor-pointer"
+                                  className="flex items-center gap-1.5 px-2.5 py-1.5 bg-neutral-900/90 border border-white/10 hover:border-white/20 text-white font-semibold text-[8px] md:text-[9px] tracking-wider uppercase transition-all duration-300 hover:bg-neutral-800 rounded-none cursor-pointer"
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <GitHubIcon className="w-3 h-3 fill-current" />

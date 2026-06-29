@@ -9,7 +9,7 @@ import { Copy, Check, Mail, ArrowUp } from "lucide-react";
 export const Footer: React.FC = () => {
   const { animationsEnabled } = useAnimation();
   const [copied, setCopied] = useState(false);
-  const email = "contato@joaolucas.dev";
+  const email = "lucastomaz.dev@gmail.com";
 
   const handleCopyEmail = () => {
     navigator.clipboard.writeText(email);

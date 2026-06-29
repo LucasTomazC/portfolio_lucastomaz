@@ -75,6 +75,11 @@ export const FluidCursor: React.FC<FluidCursorProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { animationsEnabled } = useAnimation();
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -1474,7 +1479,7 @@ export const FluidCursor: React.FC<FluidCursorProps> = ({
     transparent,
   ]);
 
-  if (!animationsEnabled || isMobile) return null;
+  if (!mounted || !animationsEnabled || isMobile) return null;
 
   return (
     <div className={["pointer-events-none fixed top-0 left-0 z-50 size-full", className].filter(Boolean).join(" ")}>

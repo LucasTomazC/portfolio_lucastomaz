@@ -2,8 +2,6 @@
 
 import React, { useEffect } from "react";
 import Lenis from "lenis";
-// @ts-expect-error - GSAP ScrollTrigger might miss type declarations in some setups
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useAnimation } from "@/context/AnimationContext";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
@@ -38,20 +36,47 @@ export default function Home() {
     };
     rafId = requestAnimationFrame(updateRaf);
 
-    // Sync Lenis scroll triggers with GSAP
-    lenis.on("scroll", () => {
-      // Keep ScrollTrigger synchronized with smooth scroll position
-      ScrollTrigger.update();
-    });
-
     return () => {
       cancelAnimationFrame(rafId);
       lenis.destroy();
     };
   }, [animationsEnabled]);
 
+  const jsonLdData = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "João Lucas",
+    "jobTitle": "Desenvolvedor Web",
+    "url": "https://lucastomaz.dev",
+    "sameAs": [
+      "https://github.com/LucasTomazC",
+      "https://www.linkedin.com/in/jo%C3%A3o-lucas-tomaz-2720aa24b"
+    ],
+    "knowsAbout": [
+      "React",
+      "Next.js",
+      "TypeScript",
+      "JavaScript",
+      "Node.js",
+      "PostgreSQL",
+      "Tailwind CSS",
+      "Docker"
+    ],
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Ceará",
+      "addressCountry": "BR"
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#050505] text-white relative dot-grid overflow-x-hidden selection:bg-[#5DADE2] selection:text-black">
+      {/* Schema Markup for Search Engines */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
+      />
+
       {/* Fixed Navigation Header */}
       <Header />
 
