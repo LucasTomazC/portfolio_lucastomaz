@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # Dependencies
 /node_modules
 /.pnp
@@ -14,6 +12,7 @@
 /.next/
 /out/
 /build
+.turbo
 *.tsbuildinfo
 next-env.d.ts
 
@@ -24,7 +23,7 @@ yarn-error.log*
 .pnpm-debug.log*
 *.log
 
-# Testing
+# Testing & Coverage
 /coverage
 /.nyc_output
 
@@ -39,6 +38,7 @@ yarn-error.log*
 *.pem
 *.key
 *.cert
+*.local
 
 # Vercel Deployment
 .vercel
@@ -53,6 +53,8 @@ ehthumbs.db
 Thumbs.db
 Thumbs.db:encryptable
 Desktop.ini
+*.tmp
+*.bak
 
 # IDEs and Editors
 .vscode/
@@ -66,4 +68,9 @@ Desktop.ini
 *.swp
 *~
 
-.agent
+# AI Agent Configs & Caches
+.agent/
+.agents/
+.gemini/
+.claude/
+
