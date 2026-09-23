@@ -64,9 +64,9 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased scroll-smooth`}
+      className={`${spaceGrotesk.variable} ${inter.variable} antialiased`}
     >
-      <body className="min-h-full bg-[#050505] text-white flex flex-col font-sans selection:bg-[#5DADE2] selection:text-black">
+      <body className="min-h-screen bg-[#050505] text-white flex flex-col font-sans selection:bg-[#5DADE2] selection:text-black">
         <a href="#home" className="skip-to-content">
           Pular para o conteúdo
         </a>

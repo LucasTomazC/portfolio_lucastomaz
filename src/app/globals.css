@@ -29,10 +29,15 @@
 }
 
 /* Custom Reset and Utilities */
+.hero-heading {
+  background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 html,
 body {
   background-color: #050505;
-  overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   user-select: none;

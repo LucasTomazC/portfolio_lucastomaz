@@ -70,7 +70,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white relative dot-grid overflow-x-hidden selection:bg-[#5DADE2] selection:text-black">
+    <main className="min-h-screen bg-[#050505] text-white relative dot-grid selection:bg-[#5DADE2] selection:text-black">
       {/* Schema Markup for Search Engines */}
       <script
         type="application/ld+json"
