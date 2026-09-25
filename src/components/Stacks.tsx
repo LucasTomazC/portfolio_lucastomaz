@@ -213,6 +213,7 @@ const TECH_DATA: AnimateGridCard[] = [
         alt="Claude Code"
         width={40}
         height={40}
+        style={{ width: "auto", height: "auto" }}
         className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow"
       />
     ),
@@ -230,6 +231,7 @@ const TECH_DATA: AnimateGridCard[] = [
         alt="Codex"
         width={40}
         height={40}
+        style={{ width: "auto", height: "auto" }}
         className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow"
       />
     ),
@@ -247,6 +249,7 @@ const TECH_DATA: AnimateGridCard[] = [
         alt="VS Code"
         width={40}
         height={40}
+        style={{ width: "auto", height: "auto" }}
         className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow"
       />
     ),
