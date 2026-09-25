@@ -6,6 +6,7 @@ import { useAnimation } from "@/context/AnimationContext";
 import { ExternalLink } from "lucide-react";
 import { GitHubIcon } from "@/components/icons";
 import Image from "next/image";
+import { StaggerText } from "@/components/ui/StaggerText";
 
 // ==========================================
 // REUSABLE COMPONENTS
@@ -322,7 +323,7 @@ export const Projects: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const totalCards = PROJECTS_DATA.length;
 
-  // Track parent scroll progress across all stacked cards
+  // Track parent scroll progress across all stacked cards (uses Framer Motion's internal requestAnimationFrame compositor loop for 60fps)
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"],
@@ -335,17 +336,24 @@ export const Projects: React.FC = () => {
     >
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
-        <FadeIn className="mb-8 sm:mb-12 md:mb-16 text-center max-w-3xl mx-auto">
-          <span className="text-xs uppercase tracking-widest font-display text-[#5DADE2] font-semibold">
-            Portfólio
-          </span>
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold uppercase mt-2 tracking-tight hero-heading">
-            Projetos em Destaque
-          </h2>
+        <div className="mb-8 sm:mb-12 md:mb-16 text-center max-w-3xl mx-auto">
+          <StaggerText
+            as="span"
+            text="Portfólio"
+            divideBy="word"
+            className="text-xs uppercase tracking-widest font-display text-[#5DADE2] font-semibold block"
+          />
+          <StaggerText
+            as="h2"
+            text="Projetos em Destaque"
+            divideBy="word"
+            delay={0.1}
+            className="text-3xl md:text-5xl lg:text-6xl font-display font-bold uppercase mt-2 tracking-tight text-white block"
+          />
           <p className="text-sm sm:text-base text-neutral-400 mt-4 leading-relaxed font-sans max-w-xl mx-auto">
             Seleção de aplicações web e interfaces digitais de alta performance desenvolvidas com foco em experiência do usuário e arquitetura moderna.
           </p>
-        </FadeIn>
+        </div>
 
         {/* Sticky Cards Stacking Deck (Cards overwrite each other as you scroll down) */}
         <div ref={containerRef} className="relative mt-6 sm:mt-10">

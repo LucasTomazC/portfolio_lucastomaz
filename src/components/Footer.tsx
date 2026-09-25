@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAnimation } from "@/context/AnimationContext";
 import { GitHubIcon, LinkedInIcon } from "@/components/icons";
 import { Copy, Check, Mail, ArrowUp } from "lucide-react";
+import { StaggerText } from "@/components/ui/StaggerText";
 
 export const Footer: React.FC = () => {
   const { animationsEnabled } = useAnimation();
@@ -33,12 +34,19 @@ export const Footer: React.FC = () => {
         
         {/* Call to Action Title */}
         <div className="space-y-4">
-          <span className="text-xs uppercase tracking-widest font-display text-[#5DADE2] font-semibold">
-            Contato
-          </span>
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold text-white uppercase tracking-tight leading-none">
-            Vamos Construir <br className="sm:hidden" /> Algo Juntos
-          </h2>
+          <StaggerText
+            as="span"
+            text="Contato"
+            divideBy="word"
+            className="text-xs uppercase tracking-widest font-display text-[#5DADE2] font-semibold"
+          />
+          <StaggerText
+            as="h2"
+            text="Vamos Construir Algo Juntos"
+            divideBy="word"
+            delay={0.1}
+            className="text-3xl sm:text-5xl md:text-6xl font-display font-bold text-white uppercase tracking-tight leading-none"
+          />
           <p className="max-w-md mx-auto text-sm text-white/60 leading-relaxed font-sans">
             Seja para criar um web app moderno do zero, integrar APIs complexas ou debugar seu produto atual, sinta-se à vontade para enviar uma mensagem.
           </p>

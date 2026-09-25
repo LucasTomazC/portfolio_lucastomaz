@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useAnimation } from "@/context/AnimationContext";
 import { GitHubIcon, LinkedInIcon } from "@/components/icons";
 import { MapPin, ArrowDown } from "lucide-react";
+import { StaggerText } from "@/components/ui/StaggerText";
 
 export const Hero: React.FC = () => {
   const { animationsEnabled } = useAnimation();
@@ -75,7 +76,7 @@ export const Hero: React.FC = () => {
           <motion.div
             animate={floatAnimation}
             transition={floatTransition}
-            className="w-32 h-32 md:w-36 md:h-36 rounded-full p-[2px] bg-gradient-to-tr from-[#5DADE2] via-cyan-500 to-violet-600 shadow-[0_0_30px_rgba(93,173,226,0.2)]"
+            className="w-32 h-32 md:w-36 md:h-36 rounded-full p-[2px] bg-gradient-to-tr from-[#5DADE2] via-cyan-500 to-[#2E86C1] shadow-[0_0_30px_rgba(93,173,226,0.2)]"
           >
             <div className="w-full h-full rounded-full bg-[#050505] overflow-hidden flex items-center justify-center">
               <Image
@@ -101,15 +102,17 @@ export const Hero: React.FC = () => {
           <span>Ceará, Brasil</span>
         </motion.div>
 
-        {/* Large Title */}
-        <motion.h1
-          variants={fadeInUp(0.3)}
-          initial="hidden"
-          animate="visible"
+        {/* Large Title with StaggerText */}
+        <StaggerText
+          as="h1"
+          text="Modern Web Developer"
+          highlightWord="Web"
+          highlightClassName="text-[#5DADE2] bg-gradient-to-r from-[#5DADE2] to-cyan-400 bg-clip-text text-transparent"
+          divideBy="word"
+          triggerOnMount
+          delay={0.25}
           className="font-display font-bold text-4xl sm:text-6xl md:text-7xl text-white tracking-tight uppercase leading-none"
-        >
-          Modern <span className="text-[#5DADE2] bg-gradient-to-r from-[#5DADE2] to-cyan-400 bg-clip-text text-transparent">Web</span> Developer
-        </motion.h1>
+        />
 
         {/* Bio Description */}
         <motion.p

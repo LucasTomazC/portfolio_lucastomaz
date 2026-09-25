@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { GraduationCap, Clock } from "lucide-react";
 import Image from "next/image";
+import { StaggerText } from "@/components/ui/StaggerText";
 
 // Helper to merge classes
 const cn = (...classes: (string | undefined | null | false)[]) =>
@@ -64,12 +65,19 @@ export const Certificates: React.FC = () => {
         
         {/* Header */}
         <div className="mb-16 md:mb-24 text-center md:text-left">
-          <span className="text-xs uppercase tracking-widest font-display text-[#5DADE2] font-semibold">
-            Formação & Estudos
-          </span>
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-white uppercase mt-2 tracking-tight">
-            Certificados <span className="text-white/20">&</span> Especializações
-          </h2>
+          <StaggerText
+            as="span"
+            text="Formação & Estudos"
+            divideBy="word"
+            className="text-xs uppercase tracking-widest font-display text-[#5DADE2] font-semibold"
+          />
+          <StaggerText
+            as="h2"
+            text="Certificados & Especializações"
+            divideBy="word"
+            delay={0.1}
+            className="text-3xl md:text-5xl font-display font-bold text-white uppercase mt-2 tracking-tight"
+          />
           <p className="max-w-md text-sm text-neutral-400 mt-4 leading-relaxed font-sans mx-auto md:mx-0">
             Especializações e cursos de alto nível em desenvolvimento de software atualmente em andamento. Passe o mouse ou toque para expandir os detalhes.
           </p>

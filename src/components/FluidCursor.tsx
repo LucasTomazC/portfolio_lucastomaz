@@ -83,9 +83,10 @@ export const FluidCursor: React.FC<FluidCursorProps> = ({
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(
-        window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches
-      );
+      const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
+      const isSmallScreen = window.innerWidth < 768;
+      // Do not disable on desktop/laptops with touchscreens if they have a mouse
+      setIsMobile(isSmallScreen && !hasFinePointer);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -93,7 +94,7 @@ export const FluidCursor: React.FC<FluidCursorProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!animationsEnabled || isMobile) return;
+    if (!mounted || !animationsEnabled || isMobile) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -1461,6 +1462,7 @@ export const FluidCursor: React.FC<FluidCursorProps> = ({
       }
     };
   }, [
+    mounted,
     animationsEnabled,
     isMobile,
     simResolution,
@@ -1482,11 +1484,11 @@ export const FluidCursor: React.FC<FluidCursorProps> = ({
   if (!mounted || !animationsEnabled || isMobile) return null;
 
   return (
-    <div className={["pointer-events-none fixed top-0 left-0 z-50 size-full", className].filter(Boolean).join(" ")}>
+    <div className={["pointer-events-none fixed inset-0 z-50 overflow-hidden", className].filter(Boolean).join(" ")}>
       <canvas
         id="fluid"
         ref={canvasRef}
-        className="block h-screen w-screen"
+        className="block h-full w-full pointer-events-none"
       />
     </div>
   );

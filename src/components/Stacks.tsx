@@ -1,29 +1,72 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAnimation } from "@/context/AnimationContext";
-import { Layers, Server, Database, Settings } from "lucide-react";
+import { AnimateGrid, AnimateGridCard } from "./AnimateGrid";
+import { StaggerText } from "@/components/ui/StaggerText";
 
-interface TechItem {
-  name: string;
-  category: "frontend" | "backend" | "database" | "devops";
-  color: string;
-  desc: string;
-  icon: React.ReactNode;
-}
-
-const TECH_DATA: TechItem[] = [
-  // ================= FRONTEND =================
+// =========================================================================
+// 16 HIGH-FIDELITY, AUTHENTIC, AESTHETIC TECH ICONS (4x4 Matrix)
+// =========================================================================
+const TECH_DATA: AnimateGridCard[] = [
+  // 0. HTML5
   {
-    name: "React",
-    category: "frontend",
-    color: "#61DAFB",
-    desc: "Desenvolvimento de interfaces de alto desempenho baseadas em componentes declarativos, gerenciamento de estado refinado e hooks customizados.",
+    id: "html",
+    name: "HTML5",
+    color: "#E44D26",
+    desc: "Estruturação semântica e acessível (padrões WAI-ARIA) de interfaces modernas, com foco em SEO técnico, marcação limpa e carregamento performático.",
     icon: (
-      <svg viewBox="-11.5 -10.23174 23 20.46348" className="w-6 h-6">
+      <svg viewBox="0 0 512 512" className="w-8 h-8 sm:w-10 sm:h-10">
+        <path fill="#E44D26" d="M107.6 461.4L64 0h384l-43.6 461.4L256 512z" />
+        <path fill="#F16529" d="M256 472.4l120.3-33.4 36.4-409.8H256z" />
+        <path fill="#EBEBEB" d="M256 208.6H179l-5.6-62.8H256V83.5H108.2l15.6 187.9H256zM256 355.8l-.5.1-66.8-18-4.3-48.4H121.8l8.5 95.3 125.7 34.9V355.8z" />
+        <path fill="#FFFFFF" d="M256 208.6v62.8h72.6l-6.8 76.5-65.8 17.7v62.8l122.9-34.1 1.2-13.6 13.9-155.6 1.7-18.7H256zm0-125.1v62.3h143.5l3.8-42.6 1.9-19.7H256z" />
+      </svg>
+    ),
+  },
+
+  // 1. CSS3
+  {
+    id: "css",
+    name: "CSS3",
+    color: "#1572B6",
+    desc: "Arquitetura avançada de folhas de estilo utilizando Flexbox, Grid Layout nativo, animações fluidas via keyframes e design responsivo mobile-first.",
+    icon: (
+      <svg viewBox="0 0 512 512" className="w-8 h-8 sm:w-10 sm:h-10">
+        <path fill="#1572B6" d="M107.6 461.4L64 0h384l-43.6 461.4L256 512z" />
+        <path fill="#33A9DC" d="M256 472.4l120.3-33.4 36.4-409.8H256z" />
+        <path fill="#EBEBEB" d="M256 208.2h-74.8l-5.4-60.6H256V85.3H113.6l15.6 175.7H256zM256 355.7l-.5.1-64.8-17.5-4.2-47H124.1l8.2 92.5 123.7 34.3V355.7z" />
+        <path fill="#FFFFFF" d="M256 208.2v62.8h70.3l-6.6 74.2-63.7 17.2v62.8l121.2-33.6 16.7-183.4H256zm0-122.9v62.3h139.7l3.7-41.9 1.8-20.4H256z" />
+      </svg>
+    ),
+  },
+
+  // 2. JavaScript
+  {
+    id: "javascript",
+    name: "JavaScript",
+    color: "#F7DF1E",
+    desc: "Manipulação avançada da DOM com ES6+, programação assíncrona (Promises, async/await), closures, manipulação de eventos e otimização para motores V8.",
+    icon: (
+      <svg viewBox="0 0 100 100" className="w-8 h-8 sm:w-10 sm:h-10">
+        <rect width="100" height="100" rx="14" fill="#F7DF1E" />
+        <path fill="#000000" d="M29.5 76.5c2.4 1.8 5.6 2.8 9.3 2.8 6.4 0 10.6-3.8 10.6-11.2V38h-8.8v29.8c0 3.8-1.9 5.4-4.8 5.4-1.9 0-3.6-.8-4.7-1.8l-1.6 5.1zM58.3 75.8c3.2 2.2 7.7 3.5 12.8 3.5 9.1 0 14.8-4.8 14.8-12.2 0-7.3-4.5-10.4-11.7-13.4-5.3-2.2-7.5-3.8-7.5-6.5 0-2.4 2-4.2 5.5-4.2 3.3 0 6.1 1.2 8.1 2.8l2.5-6c-2.4-1.8-6.1-2.9-10.4-2.9-8.4 0-13.8 4.7-13.8 11.8 0 7.3 4.6 10.5 11.5 13.4 5.4 2.2 7.8 4 7.8 6.8 0 2.8-2.4 4.8-6.6 4.8-3.9 0-7.4-1.5-9.8-3.6l-3.6 5.7z" />
+      </svg>
+    ),
+  },
+
+  // 3. React (Default Pre-selected)
+  {
+    id: "react",
+    name: "React",
+    color: "#61DAFB",
+    desc: "Construção de aplicações reativas de alta performance com arquitetura baseada em componentes reutilizáveis, gerenciamento de estado refinado e custom hooks.",
+    icon: (
+      <svg viewBox="-11.5 -10.23174 23 20.46348" className="w-8 h-8 sm:w-10 sm:h-10">
         <circle cx="0" cy="0" r="2.05" fill="#61DAFB" />
-        <g stroke="#61DAFB" strokeWidth="1.2" fill="none">
+        <g stroke="#61DAFB" strokeWidth="1.1" fill="none">
           <ellipse rx="11" ry="4.2" />
           <ellipse rx="11" ry="4.2" transform="rotate(60)" />
           <ellipse rx="11" ry="4.2" transform="rotate(120)" />
@@ -31,790 +74,314 @@ const TECH_DATA: TechItem[] = [
       </svg>
     ),
   },
+
+  // 4. Node.js (Grand Iconic - Flaticon)
   {
-    name: "Next.js",
-    category: "frontend",
+    id: "nodejs",
+    name: "Node.js",
+    color: "#539E43",
+    desc: "Desenvolvimento de microsserviços e APIs com arquitetura orientada a eventos não-bloqueante (Event Loop), streaming contínuo de dados e alta vazão.",
+    icon: (
+      <svg viewBox="0 0 512 512" className="w-8 h-8 sm:w-10 sm:h-10">
+        <path fill="#539E43" d="M256 8.5L25.6 141.5v229L256 503.5l230.4-133v-229L256 8.5zm0 52l185.1 106.8v178.4L256 450.5 70.9 343.7V165.3L256 60.5z" />
+        <path fill="#68BD45" d="M256 112.5L116.2 193.2v125.6L256 399.5l139.8-80.7V193.2L256 112.5zm0 46.5l99.5 57.4v76.2L256 349.9 156.5 292.6v-76.2l99.5-57.4z" />
+        <circle cx="256" cy="256" r="32" fill="#539E43" />
+      </svg>
+    ),
+  },
+
+  // 5. GitHub
+  {
+    id: "github",
+    name: "GitHub",
     color: "#FFFFFF",
-    desc: "Aplicações corporativas full-stack com SSR/SSG otimizados, App Router, estratégias híbridas de renderização, Server Actions e SEO técnico.",
+    desc: "Controle de versionamento distribuído (Git), fluxos de colaboração em equipe via Pull Requests, revisão rigorosa de código e automação com GitHub Actions.",
     icon: (
-      <svg viewBox="0 0 180 180" className="w-6 h-6">
-        <circle cx="90" cy="90" r="85" fill="black" stroke="white" strokeWidth="6" />
-        <path d="M140 145 L80 70 L70 70 L70 120" stroke="white" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <rect x="115" y="70" width="12" height="50" fill="white" />
+      <svg viewBox="0 0 98 96" className="w-8 h-8 sm:w-10 sm:h-10" fill="white">
+        <path fillRule="evenodd" clipRule="evenodd" d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" />
       </svg>
     ),
   },
+
+  // 6. PostgreSQL (Icons8: 38561)
   {
-    name: "TypeScript",
-    category: "frontend",
-    color: "#3178C6",
-    desc: "Estruturação de código limpo utilizando tipagem estática estrita, interfaces genéricas, types customizados e validação ativa em compilação.",
+    id: "postgresql",
+    name: "PostgreSQL",
+    color: "#336791",
+    desc: "Modelagem relacional corporativa, estruturação de schemas otimizados, indexação de alta velocidade, integridade transacional ACID e queries avançadas.",
     icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6 fill-[#3178C6]">
-        <rect width="100" height="100" rx="10" />
-        <text x="24" y="72" fill="white" fontSize="40" fontWeight="bold" fontFamily="monospace">T</text>
-        <text x="54" y="72" fill="white" fontSize="40" fontWeight="bold" fontFamily="monospace">S</text>
+      <Image
+        src="/icons/postgresql.png"
+        alt="PostgreSQL"
+        width={40}
+        height={40}
+        className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow"
+      />
+    ),
+  },
+
+  // 7. Supabase
+  {
+    id: "supabase",
+    name: "Supabase",
+    color: "#3ECF8E",
+    desc: "PostgreSQL gerenciado na nuvem com autenticação segura, Row Level Security (RLS) rígido, sincronização em tempo real e APIs geradas instantaneamente.",
+    icon: (
+      <svg viewBox="0 0 109 113" className="w-8 h-8 sm:w-10 sm:h-10">
+        <path d="M63.7 110.3c-2.3 3-7.2 1.7-7.6-2.1l-6-60.8h46.7c4.6 0 7.3 5 4.8 8.8l-37.9 54.1z" fill="#249361" />
+        <path d="M45.3 2.7c2.3-3 7.2-1.7 7.6 2.1l6 60.8H12.2c-4.6 0-7.3-5-4.8-8.8L45.3 2.7z" fill="#3ECF8E" />
       </svg>
     ),
   },
+
+  // 8. Vercel
   {
-    name: "Tailwind CSS",
-    category: "frontend",
-    color: "#38BDF8",
-    desc: "Estilização modular baseada em utilitários e design tokens consistentes, promovendo responsividade mobile-first e excelente performance gráfica.",
+    id: "vercel",
+    name: "Vercel",
+    color: "#FFFFFF",
+    desc: "Deploy contínuo e escalabilidade global para frameworks modernos, com Serverless Functions, Edge Middleware e CDN de baixíssima latência.",
     icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#38BDF8]">
-        <path d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8 0.913 0.228 1.565 0.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-0.913-0.228-1.565-0.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913 0.228 1.565 0.89 2.288 1.624 1.177 1.194 2.538 2.576 5.512 2.576 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z" />
+      <svg viewBox="0 0 116 100" className="w-8 h-8 sm:w-10 sm:h-10" fill="white">
+        <polygon points="58,0 116,100 0,100" />
       </svg>
     ),
   },
+
+  // 9. Render
   {
-    name: "JavaScript",
-    category: "frontend",
-    color: "#F7DF1E",
-    desc: "Manipulação nativa da DOM (ES6+), Promises, async/await assíncrono, gerenciamento de memória e otimização geral no motor Chrome V8.",
+    id: "render",
+    name: "Render",
+    color: "#46E3B7",
+    desc: "Hospedagem ágil e gerenciada de servidores backend, bancos de dados e microsserviços na nuvem, com integração contínua automática a partir do Git.",
     icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6 fill-[#F7DF1E]">
-        <rect width="100" height="100" rx="10" />
-        <text x="50" y="80" fill="black" fontSize="42" fontWeight="bold" fontFamily="sans-serif">JS</text>
+      <svg viewBox="0 0 100 100" className="w-8 h-8 sm:w-10 sm:h-10" fill="none">
+        <path d="M22 22h32c14.36 0 26 11.64 26 26s-11.64 26-26 26H22V22z" fill="#46E3B7" />
+        <path d="M46 74h28c11.05 0 20 8.95 20 20v6H46V74z" fill="#26B48B" opacity="0.9" />
+        <circle cx="54" cy="48" r="9" fill="#020420" />
       </svg>
     ),
   },
+
+  // 10. Vite
   {
-    name: "Framer Motion",
-    category: "frontend",
-    color: "#E10098",
-    desc: "Animações fluidas de interface de usuário baseadas em física real (spring physics), transições de rotas e orquestração de layouts complexos.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#E10098]">
-        <path d="M12 0l12 12H12V0zm-12 12l12 12V12H0zm12 0h12v12H12V12z" />
-      </svg>
-    ),
-  },
-  {
-    name: "GSAP",
-    category: "frontend",
-    color: "#88CE02",
-    desc: "Animações avançadas baseadas em scroll (ScrollTrigger), manipulação precisa de timelines complexas e renderização vetorial de alto desempenho.",
-    icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6 fill-none stroke-[#88CE02] stroke-[8]">
-        <rect x="10" y="10" width="80" height="80" rx="15" strokeWidth="6" />
-        <text x="18" y="65" fill="#88CE02" fontSize="45" fontWeight="bold" fontFamily="sans-serif" stroke="none">G</text>
-      </svg>
-    ),
-  },
-  {
+    id: "vite",
     name: "Vite",
-    category: "frontend",
     color: "#646CFF",
-    desc: "Ferramental de bundling moderno e ultra-rápido com Hot Module Replacement (HMR) instantâneo para otimização do fluxo de desenvolvimento.",
+    desc: "Ambiente de compilação ultra-rápido alimentado por ES Modules nativos e Rollup, garantindo Hot Module Replacement (HMR) quase instantâneo.",
     icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6">
+      <svg viewBox="0 0 410 404" className="w-8 h-8 sm:w-10 sm:h-10">
         <defs>
-          <linearGradient id="vite-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#4158D0" />
-            <stop offset="50%" stopColor="#C850C0" />
-            <stop offset="100%" stopColor="#FFCC70" />
+          <linearGradient id="vite-shield-brand" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#41D1FF" />
+            <stop offset="100%" stopColor="#BD34FE" />
+          </linearGradient>
+          <linearGradient id="vite-bolt-brand" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFEA83" />
+            <stop offset="100%" stopColor="#FFDD35" />
           </linearGradient>
         </defs>
-        <path d="M10 20 L50 90 L90 20 Z" fill="url(#vite-grad)" />
-        <path d="M45 40 L55 25 L45 55 L55 55 L45 75 L60 48 L50 48 Z" fill="#FFD600" />
+        <path fill="url(#vite-shield-brand)" d="M399.7 59.4L215.7 386.6c-4.4 7.9-15.9 7.9-20.3 0L10.3 59.4c-4.9-8.7-.3-19.6 9.5-22.1l180.2-46.4c3.4-.9 7-.9 10.4 0l179.8 46.4c9.8 2.5 14.4 13.4 9.5 22.1z" />
+        <path fill="url(#vite-bolt-brand)" d="M283.8 28.5l-133 24.3c-4.6.8-7.5 5.5-6.2 10l30.9 104.5c1.1 3.8-.8 7.8-4.4 9.4L114 200.2c-5.7 2.6-6.6 10.4-1.6 14.2l121.7 91.9c5.1 3.9 12.3-.1 11.7-6.5l-10.4-106.6c-.4-4.2 2.6-8 6.7-8.6l57.7-8.6c6.1-.9 8.8-8.2 4.7-12.7L283.8 28.5z" />
       </svg>
     ),
   },
 
-  // ================= BACKEND =================
+  // 11. Next.js
   {
-    name: "Node.js",
-    category: "backend",
-    color: "#339933",
-    desc: "Desenvolvimento de microserviços e serviços back-end rápidos utilizando o modelo de I/O não-bloqueante orientado a eventos.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#339933]">
-        <path d="M12 2L4 6.5v9L12 20l8-4.5v-9L12 2zm6 12.3l-6 3.4-6-3.4v-6.8l6-3.4 6 3.4v6.8z" />
-      </svg>
-    ),
-  },
-  {
-    name: "Express",
-    category: "backend",
+    id: "nextjs",
+    name: "Next.js",
     color: "#FFFFFF",
-    desc: "Criação de rotas modulares de API RESTful rápidas e minimalistas com estruturação robusta de middlewares globais e tratamento de erros.",
+    desc: "Aplicações corporativas escaláveis com App Router, renderização híbrida (SSR/SSG), Server Components, Server Actions e otimização para Core Web Vitals.",
     icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6 fill-none stroke-white stroke-[8]">
-        <rect x="10" y="10" width="80" height="80" rx="15" strokeWidth="6" />
-        <text x="22" y="65" fill="white" fontSize="40" fontWeight="bold" fontFamily="sans-serif" stroke="none">Ex</text>
-      </svg>
-    ),
-  },
-  {
-    name: "NestJS",
-    category: "backend",
-    color: "#E0234E",
-    desc: "Estruturação corporativa utilizando a arquitetura Model-View-Controller clássica orientada por injeção de dependências sob regras do SOLID.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#E0234E]">
-        <path d="M12 2L2 9.5l3.5 12h13L22 9.5L12 2zm0 3.5l6 4.5l-2.5 8.5h-7L6 10l6-4.5z" />
-      </svg>
-    ),
-  },
-  {
-    name: "Python",
-    category: "backend",
-    color: "#3776AB",
-    desc: "Automação de fluxos de processos, desenvolvimento ágil de microsserviços integrados com FastAPI e tratamento de conjuntos de dados.",
-    icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6">
-        <path d="M50 5C25.1 5 25.1 15.9 25.1 15.9L25.1 26.8H46.9C52.4 26.8 56.9 31.3 56.9 36.8L56.9 47.7H67.8C78.7 47.7 89.6 47.7 89.6 22.9C89.6-1.9 67.8 5 50 5Z" fill="#3776AB" />
-        <path d="M50 95C74.9 95 74.9 84.1 74.9 84.1L74.9 73.2H53.1C47.6 73.2 43.1 68.7 43.1 63.2L43.1 52.3H32.2C21.3 52.3 10.4 52.3 10.4 77.1C10.4 98.9 32.2 95 50 95Z" fill="#FFE873" />
-        <circle cx="37.5" cy="15.9" r="4" fill="white" />
-        <circle cx="62.5" cy="84.1" r="4" fill="black" />
-      </svg>
-    ),
-  },
-  {
-    name: "REST APIs",
-    category: "backend",
-    color: "#00A3E0",
-    desc: "Modelagem criteriosa de interfaces de comunicação com padronização semântica HTTP, códigos de status específicos e versionamento seguro.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#00A3E0]" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="5" r="3" />
-        <circle cx="5" cy="19" r="3" />
-        <circle cx="19" cy="19" r="3" />
-        <path d="M12 8v8M5 16l7-8 7 8" />
-      </svg>
-    ),
-  },
-  {
-    name: "Fastify",
-    category: "backend",
-    color: "#E2E8F0",
-    desc: "Desenvolvimento de APIs RESTful de baixíssimo overhead, com validação instantânea de schemas via JSON Schema e alta taxa de vazão.",
-    icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6 fill-none stroke-[#4A5568] stroke-[8]">
-        <circle cx="50" cy="50" r="45" fill="black" stroke="#4A5568" strokeWidth="6" />
-        <path d="M35 50 L50 25 L45 50 L65 50 L50 75 L55 50 Z" fill="#FFD600" stroke="none" />
-      </svg>
-    ),
-  },
-  {
-    name: "GraphQL",
-    category: "backend",
-    color: "#E10098",
-    desc: "Consultas otimizadas através de tipos auto-declarativos, resolvendo problemas clássicos de underfetching e overfetching na rede.",
-    icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6">
-        <g fill="none" stroke="#E10098" strokeWidth="4">
-          <polygon points="50,10 90,32 90,78 50,90 10,78 10,32" />
-          <line x1="50" y1="10" x2="50" y2="90" />
-          <line x1="90" y1="32" x2="10" y2="78" />
-          <line x1="90" y1="78" x2="10" y2="32" />
-        </g>
-        <g fill="#E10098">
-          <circle cx="50" cy="10" r="6" />
-          <circle cx="90" cy="32" r="6" />
-          <circle cx="90" cy="78" r="6" />
-          <circle cx="50" cy="90" r="6" />
-          <circle cx="10" cy="78" r="6" />
-          <circle cx="10" cy="32" r="6" />
-        </g>
-      </svg>
-    ),
-  },
-  {
-    name: "WebSockets",
-    category: "backend",
-    color: "#00E6FF",
-    desc: "Transmissão contínua de dados em tempo real utilizando conexões TCP persistentes bidirecionais eficientes sem overhead HTTP.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#00E6FF]" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="5" cy="12" r="2" fill="#00E6FF" />
-        <circle cx="19" cy="12" r="2" fill="#00E6FF" />
-        <path d="M7 12h10M12 7v10M9 9l6 6M9 15l6-6" />
+      <svg viewBox="0 0 180 180" className="w-8 h-8 sm:w-10 sm:h-10">
+        <circle cx="90" cy="90" r="86" fill="#000000" stroke="#FFFFFF" strokeWidth="8" />
+        <path d="M148 148 L80 60 L62 60 L62 120" stroke="#FFFFFF" strokeWidth="14" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <rect x="118" y="60" width="14" height="60" fill="#FFFFFF" />
       </svg>
     ),
   },
 
-  // ================= BANCO DE DADOS =================
+  // 12. Claude Code (Icons8: o6yNtKLfZIc6)
   {
-    name: "PostgreSQL",
-    category: "database",
-    color: "#336791",
-    desc: "Arquitetura relacional avançada, otimização de consultas complexas com joins, indexação de performance e controle transacional rígido.",
+    id: "claude-code",
+    name: "Claude Code",
+    color: "#D97706",
+    desc: "Engenharia de software acelerada por agentes avançados de inteligência artificial via terminal, permitindo raciocínio arquitetural e refatorações complexas.",
     icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#336791]" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22a8 8 0 0 0 8-8c0-5.5-4.5-8-10-8H8c-2.2 0-4 1.8-4 4s1.8 4 4 4h1" />
-        <path d="M16 14a2 2 0 1 0-4 0M10 8V6a3 3 0 0 0-3-3" />
-      </svg>
+      <Image
+        src="/icons/claude-color.png"
+        alt="Claude Code"
+        width={40}
+        height={40}
+        className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow"
+      />
     ),
   },
+
+  // 13. Codex (Icons8: FBO05Dys9QCg)
   {
-    name: "MongoDB",
-    category: "database",
-    color: "#47A248",
-    desc: "Modelagem documental Não-Relacional de grande escala, manipulação de coleções complexas, agregações e schemas flexíveis.",
+    id: "codex",
+    name: "Codex",
+    color: "#10A37F",
+    desc: "Síntese inteligente de código e automação de rotinas via grandes modelos de linguagem (LLMs), potencializando a velocidade de entrega técnica.",
     icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#47A248]" strokeWidth="2">
-        <path d="M12 2C12 2 6 7 6 12C6 17 12 22 12 22C12 22 18 17 18 12C18 7 12 2" fill="#47A248" fillOpacity="0.2" />
-        <path d="M12 2v20" />
-        <path d="M12 8c2.5 1.5 4 4 4 4s-1.5 2.5-4 4M12 8c-2.5 1.5-4 4-4 4s1.5 2.5 4 4" />
-      </svg>
+      <Image
+        src="/icons/codex-color.png"
+        alt="Codex"
+        width={40}
+        height={40}
+        className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow"
+      />
     ),
   },
+
+  // 14. VS Code (Icons8: 121601 - Replacing Antigravity)
   {
-    name: "Prisma",
-    category: "database",
-    color: "#2B6CB0",
-    desc: "Mapeamento objeto-relacional (ORM) seguro com geração automática de tipos TypeScript estritos, migrations estruturadas e queries velozes.",
-    icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6 fill-none stroke-[#2B6CB0]" strokeWidth="6">
-        <polygon points="50,10 90,80 10,80" />
-        <line x1="50" y1="10" x2="50" y2="80" />
-        <line x1="50" y1="50" x2="90" y2="80" />
-        <line x1="50" y1="50" x2="10" y2="80" />
-      </svg>
-    ),
-  },
-  {
-    name: "Redis",
-    category: "database",
-    color: "#DC382D",
-    desc: "Armazenamento em cache na memória RAM de alta velocidade, barramento de mensageria chave-valor simples e rate limiting de requisições.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#DC382D]" strokeWidth="2">
-        <path d="M3 6l9-3 9 3-9 3-9-3zM3 12l9-3 9 3-9 3-9-3zM3 18l9-3 9 3-9 3-9-3z" fill="#DC382D" fillOpacity="0.1" />
-        <path d="M3 6v12M21 6v12M12 9v12" />
-      </svg>
-    ),
-  },
-  {
-    name: "Supabase",
-    category: "database",
-    color: "#3ECF8E",
-    desc: "Arquitetura PostgreSQL como serviço (BaaS) com autenticação nativa, Row Level Security (RLS) avançado e gatilhos de dados em tempo real.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#3ECF8E]">
-        <path d="M13.5 2L4.5 12.5h7.5V22l9-10.5h-7.5V2z" />
-      </svg>
-    ),
-  },
-  {
-    name: "SQL",
-    category: "database",
+    id: "vscode",
+    name: "VS Code",
     color: "#007ACC",
-    desc: "Escrita manual de scripts otimizados para relacionamentos complexos de tabelas, joins encadeados, subqueries de controle e views rápidas.",
+    desc: "Ambiente de desenvolvimento integrado (IDE) leve, moderno e altamente extensível com suporte a depuração nativa, IntelliSense, Git e ecossistema de extensões.",
     icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#007ACC]" strokeWidth="2">
-        <ellipse cx="12" cy="5" rx="9" ry="3" />
-        <path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6" />
-      </svg>
-    ),
-  },
-  {
-    name: "Firebase",
-    category: "database",
-    color: "#FFCA28",
-    desc: "Base NoSQL Firestore para prototipagem rápida em tempo real, integração direta com redes sociais e armazenamento de sessões estáticas.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#FFCA28]">
-        <path d="M3.89 15.67L10.05 2.18c.17-.37.71-.37.88 0l2.08 4.09 1.12-2.18c.17-.33.64-.33.81 0l5.04 9.87c.21.41-.09.91-.55.91H4.45c-.46 0-.76-.5-.56-.91z" />
-        <path d="M3.89 15.67L10.05 2.18c.17-.37.71-.37.88 0l9.05 13.49c.32.48-.02 1.13-.6.13l-9.33-13.62z" fill="#F57C00" />
-      </svg>
-    ),
-  },
-  {
-    name: "SQLite",
-    category: "database",
-    color: "#003B57",
-    desc: "Banco de dados relacional encapsulado de alta performance local, perfeito para mocks de infraestrutura local, testes rápidos e micro-instâncias.",
-    icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6 fill-none stroke-[#003B57]" strokeWidth="8">
-        <ellipse cx="50" cy="30" rx="40" ry="15" />
-        <path d="M10 30v40c0 8.3 17.9 15 40 15s40-6.7 40-15V30" />
-        <path d="M10 50c0 8.3 17.9 15 40 15s40-6.7 40-15" />
-        <text x="32" y="58" fill="#003B57" fontSize="22" fontWeight="bold" fontFamily="sans-serif" stroke="none">SQL</text>
-      </svg>
+      <Image
+        src="/icons/vscode-color.png"
+        alt="VS Code"
+        width={40}
+        height={40}
+        className="w-8 h-8 sm:w-10 sm:h-10 object-contain drop-shadow"
+      />
     ),
   },
 
-  // ================= DEVOPS =================
+  // 15. Tailwind CSS
   {
-    name: "Docker",
-    category: "devops",
-    color: "#2496ED",
-    desc: "Isolamento de infraestrutura através de contêineres replicáveis, garantindo consistência total entre ambientes locais e produção.",
+    id: "tailwindcss",
+    name: "Tailwind CSS",
+    color: "#38BDF8",
+    desc: "Estilização utilitária moderna com design tokens atômicos consistentes, suporte a container queries e compilação de alta performance sem CSS supérfluo.",
     icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#2496ED]">
-        <path d="M13.983 8.871h-1.996v1.996h1.996V8.871zm-2.495 0h-1.996v1.996h1.996V8.871zm-2.495 0H6.997v1.996h1.996V8.871zm-2.495 0H4.501v1.996h1.996V8.871zm5.234-2.5h-1.996v1.996h1.996V6.371zm-2.495 0H6.997V8.37h1.996V6.371zm-2.495 0H4.501V8.37h1.996V6.371zm0-2.5H4.501v1.996h1.996V3.871zm15.74 8.76c-.056-.168-.266-.889-.785-1.57-.45-.589-1.127-.889-2.022-.889-.968 0-1.745.385-2.226.792-.375.318-.686.721-.908 1.157-.183-.056-.37-.084-.564-.084h-.056c-.03 0-.056.014-.084.014-.422-.056-.84-.112-1.258-.112h-.056c-.225 0-.442.028-.655.056-.188-.124-.469-.25-.83-.25h-5.235c-.056 0-.112.014-.168.028a3.175 3.175 0 00-.591-.056h-1.996c-.33 0-.616.14-.814.364v5.474c0 .35.286.63.63.63H18.99c2.812 0 5.093-2.281 5.093-5.093 0-1.042-.37-2.022-1.01-2.822z" />
-      </svg>
-    ),
-  },
-  {
-    name: "Git",
-    category: "devops",
-    color: "#F05032",
-    desc: "Versionamento distribuído de código com controle de ramificações (branching), commits organizados e histórico limpo com rebase.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#F05032]" strokeWidth="2">
-        <circle cx="12" cy="18" r="3" />
-        <circle cx="6" cy="6" r="3" />
-        <circle cx="18" cy="12" r="3" />
-        <path d="M6 9v3a3 3 0 0 0 3 3h6" />
-        <path d="M18 9v3" />
-      </svg>
-    ),
-  },
-  {
-    name: "GitHub Actions",
-    category: "devops",
-    color: "#58A6FF",
-    desc: "Automação completa do ciclo de deploy integrando testes contínuos, análise de cobertura de código e entrega direta de código à nuvem.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#58A6FF]" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <path d="M9 16V8l5 4-5 4z" fill="#58A6FF" fillOpacity="0.2" />
-        <path d="M21 12H14" />
-      </svg>
-    ),
-  },
-  {
-    name: "Linux",
-    category: "devops",
-    color: "#FCC624",
-    desc: "Operação e administração nativa de servidores baseados em distribuições Unix, scripts Bash para automação e manipulação avançada de terminais.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#FCC624]" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="4 17 10 11 4 5" />
-        <line x1="12" y1="19" x2="20" y2="19" />
-      </svg>
-    ),
-  },
-  {
-    name: "AWS",
-    category: "devops",
-    color: "#FF9900",
-    desc: "Orquestração básica de infraestrutura em nuvem segura, gerenciando instâncias de execução EC2, bucket S3 e isolamento de rede VPC.",
-    icon: (
-      <svg viewBox="0 0 100 100" className="w-6 h-6">
-        <path d="M80 50 C80 65 65 80 50 80 C35 80 20 65 20 50 C20 35 35 20 50 20 C65 20 80 35 80 50 Z" fill="#232F3E" />
-        <path d="M25 85 Q50 98 75 85" fill="none" stroke="#FF9900" strokeWidth="6" strokeLinecap="round" />
-        <polygon points="75,85 70,75 82,82" fill="#FF9900" />
-        <text x="32" y="58" fill="white" fontSize="24" fontWeight="bold" fontFamily="sans-serif">aws</text>
-      </svg>
-    ),
-  },
-  {
-    name: "Vercel",
-    category: "devops",
-    color: "#FFFFFF",
-    desc: "Serviço gerenciado otimizado para frameworks web modernos com deploys git-triggered, edge computing rápida e serverless functions nativas.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
-        <polygon points="12,2 22,20 2,20" />
-      </svg>
-    ),
-  },
-  {
-    name: "CI/CD",
-    category: "devops",
-    color: "#00FF66",
-    desc: "Modelagem de fluxos automatizados de integração, validação de tipos, verificação de qualidade com linters e compilação limpa de bundles.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#00FF66]" strokeWidth="2">
-        <path d="M4 12c0-3.3 2.7-6 6-6 2.5 0 4.7 1.5 5.5 3.8l.5 1.4c.8 2.3 3 3.8 5.5 3.8 3.3 0 6-2.7 6-6s-2.7-6-6-6c-2.5 0-4.7 1.5-5.5 3.8l-.5 1.4c-.8 2.3-3 3.8-5.5 3.8-3.3 0-6-2.7-6-6z" transform="scale(0.8) translate(3, 3)" />
-      </svg>
-    ),
-  },
-  {
-    name: "HTML5/CSS3",
-    category: "devops",
-    color: "#E34F26",
-    desc: "Construção semântica de layouts modernos seguindo padrões rígidos de acessibilidade (WAI-ARIA), SEO técnico e responsividade de tela.",
-    icon: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-[#E34F26]" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <path d="M3 9h18M9 21V9" />
+      <svg viewBox="0 0 24 24" className="w-8 h-8 sm:w-10 sm:h-10" fill="#38BDF8">
+        <path d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8 0.913 0.228 1.565 0.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-0.913-0.228-1.565-0.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913 0.228 1.565 0.89 2.288 1.624 1.177 1.194 2.538 2.576 5.512 2.576 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z" />
       </svg>
     ),
   },
 ];
 
-const TABS = [
-  { id: "frontend", label: "Front-end", icon: <Layers className="w-4 h-4" /> },
-  { id: "backend", label: "Back-end", icon: <Server className="w-4 h-4" /> },
-  { id: "database", label: "Banco de Dados", icon: <Database className="w-4 h-4" /> },
-  { id: "devops", label: "DevOps & Tools", icon: <Settings className="w-4 h-4" /> },
-] as const;
+// React is index 3 (Default pre-selected)
+const DEFAULT_TECH_INDEX = 3;
 
 export const Stacks: React.FC = () => {
   const { animationsEnabled } = useAnimation();
-  const [activeTab, setActiveTab] = useState<"frontend" | "backend" | "database" | "devops">("frontend");
-  const [hoveredTech, setHoveredTech] = useState<TechItem | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(DEFAULT_TECH_INDEX);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Math orbital settings responsive
-  const [radius, setRadius] = useState({ x: 300, y: 75 });
-  const [rotationAngle, setRotationAngle] = useState(0);
-  const [isMobileSize, setIsMobileSize] = useState(true);
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const isHoveringWheel = useRef(false);
-  const startX = useRef(0);
-  const startAngle = useRef(0);
-  const velocity = useRef(0);
-  const lastX = useRef(0);
-  const lastTime = useRef(0);
-
-  // Resize listener
   useEffect(() => {
-    const updateSize = () => {
-      setIsMobileSize(window.innerWidth < 768);
-      if (window.innerWidth < 640) {
-        setRadius({ x: 130, y: 35 }); // Mobile
-      } else if (window.innerWidth < 1024) {
-        setRadius({ x: 230, y: 60 }); // Tablet
-      } else {
-        setRadius({ x: 320, y: 80 }); // Desktop
-      }
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
     };
-    updateSize();
-    window.addEventListener("resize", updateSize);
-    return () => window.removeEventListener("resize", updateSize);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Filter tech by current category (memoized to prevent infinite useEffect triggers)
-  const activeTechs = useMemo(() => TECH_DATA.filter((t) => t.category === activeTab), [activeTab]);
-
-  // Reset rotation angle on category change has been moved directly to the tab click handlers.
-
-  // RequestAnimationFrame loop for auto rotation and inertia drag
-  useEffect(() => {
-    if (!animationsEnabled) return;
-
-    let frameId: number;
-    const tick = () => {
-      if (!isDragging.current) {
-        if (Math.abs(velocity.current) > 0.02) {
-          setRotationAngle((prev) => prev + velocity.current * 0.015);
-          velocity.current *= 0.95; // Damping/friction factor
-        } else if (!isHoveringWheel.current) {
-          // Slow ambient orbit animation when idle: 0.0025 rads per frame
-          setRotationAngle((prev) => prev + 0.0025);
-        }
-      }
-      frameId = requestAnimationFrame(tick);
-    };
-    frameId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frameId);
-  }, [animationsEnabled]);
-
-  // Dynamically select the tech that is currently closest to the front (depth z is maximized)
-  useEffect(() => {
-    if (isHoveringWheel.current || isDragging.current) return;
-    if (activeTechs.length === 0) return;
-
-    let closestIndex = 0;
-    let maxZ = -Infinity;
-
-    activeTechs.forEach((tech, index) => {
-      const itemAngle = rotationAngle + (index * 2 * Math.PI) / activeTechs.length;
-      const z = Math.cos(itemAngle);
-      if (z > maxZ) {
-        maxZ = z;
-        closestIndex = index;
-      }
-    });
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHoveredTech(activeTechs[closestIndex]);
-  }, [rotationAngle, activeTab, activeTechs]);
-
-  // Drag handlers using Pointer Events for unified touch/mouse support
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!animationsEnabled) return;
-    isDragging.current = true;
-    startX.current = e.clientX;
-    startAngle.current = rotationAngle;
-    lastX.current = e.clientX;
-    lastTime.current = performance.now();
-    velocity.current = 0;
-    if (containerRef.current) {
-      containerRef.current.setPointerCapture(e.pointerId);
-    }
-  };
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging.current) return;
-    const dx = e.clientX - startX.current;
-    
-    // Rotation sensitivity
-    const sensitivity = window.innerWidth < 640 ? 0.012 : 0.007;
-    const newAngle = startAngle.current + dx * sensitivity;
-    setRotationAngle(newAngle);
-
-    // Speed velocity measurement
-    const now = performance.now();
-    const dt = now - lastTime.current;
-    if (dt > 0) {
-      const speed = (e.clientX - lastX.current) / dt;
-      velocity.current = speed * 12; // Speed multiplier
-    }
-    lastX.current = e.clientX;
-    lastTime.current = now;
-  };
-
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    if (containerRef.current) {
-      containerRef.current.releasePointerCapture(e.pointerId);
-    }
-  };
+  const activeIndex = hoveredIndex ?? DEFAULT_TECH_INDEX;
+  const activeTech = TECH_DATA[activeIndex];
 
   return (
     <section
       id="stacks"
-      className="py-24 md:py-32 bg-[#050505] border-t border-white/5 relative overflow-hidden z-10 select-none"
+      aria-label="Tecnologias e Stacks"
+      className="relative py-24 sm:py-32 px-4 sm:px-6 lg:px-8 border-b border-white/5 bg-[#050505] overflow-hidden"
     >
-      {/* Main Container */}
-      <div className="max-w-6xl mx-auto px-6 md:px-12">
-        
-        {/* Section Header */}
-        <div className="mb-12 md:mb-16 text-center">
-          <span className="text-xs uppercase tracking-widest font-display text-[#5DADE2] font-semibold">
-            Tecnologias
-          </span>
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-white uppercase mt-2 tracking-tight">
-            Nível Técnico <span className="text-white/20">&</span> Stacks
-          </h2>
-          <p className="max-w-xl mx-auto text-sm text-white/55 mt-4 leading-relaxed font-sans">
-            Explore as ferramentas e arquiteturas agrupadas por categoria. Arraste ou segure o anel para interagir com as Stacks em 3D.
-          </p>
-        </div>
+      {/* Background subtle technical grid lines */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
 
-        {/* Tab Selection */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-16 max-w-2xl mx-auto border border-white/5 p-1.5 bg-[#090909] rounded-none">
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  setRotationAngle(0);
-                }}
-                className={`flex items-center gap-2 px-5 py-3 text-xs font-display font-semibold uppercase tracking-wider transition-all duration-300 rounded-none w-full sm:w-auto justify-center ${
-                  isActive
-                    ? "bg-[#5DADE2] text-black shadow-[0_0_20px_rgba(93,173,226,0.2)]"
-                    : "text-white/60 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Dynamic Display Area */}
-        <div className="relative min-h-[460px] w-full flex flex-col items-center justify-between">
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
           
-          {(animationsEnabled && !isMobileSize) ? (
-            /* ================= 3D INTERACTIVE ORBITAL LAYOUT ================= */
-            <div
-              ref={containerRef}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerUp}
-              onMouseEnter={() => { isHoveringWheel.current = true; }}
-              onMouseLeave={() => { isHoveringWheel.current = false; }}
-              className="relative w-full h-[280px] flex items-center justify-center cursor-grab active:cursor-grabbing touch-none"
-            >
-              {/* Glowing category engine central core */}
-              <div
-                className="absolute w-12 h-12 rounded-full blur-2xl opacity-40 transition-colors duration-1000 pointer-events-none"
-                style={{
-                  backgroundColor: TABS.find((t) => t.id === activeTab)?.id === "frontend"
-                    ? "#61DAFB"
-                    : TABS.find((t) => t.id === activeTab)?.id === "backend"
-                    ? "#339933"
-                    : TABS.find((t) => t.id === activeTab)?.id === "database"
-                    ? "#4169E1"
-                    : "#FF9900",
-                }}
+          {/* ==================================================== */}
+          {/* LEFT COLUMN: Section Title & Clean Details Card      */}
+          {/* ==================================================== */}
+          <div className="lg:col-span-5 flex flex-col justify-center space-y-6">
+            
+            {/* Eyebrow Header */}
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-[1px] bg-[#5DADE2]" />
+              <StaggerText
+                as="span"
+                text="// TECH STACK"
+                divideBy="word"
+                className="text-xs font-mono tracking-widest uppercase text-[#5DADE2]"
               />
+            </div>
 
-              {/* Render orbiting elements */}
-              <AnimatePresence mode="popLayout">
-                {activeTechs.map((tech, index) => {
-                  // Octagon calculations: 8 items -> 2 * PI / 8 = 45 degrees step
-                  const itemAngle = rotationAngle + (index * 2 * Math.PI) / activeTechs.length;
+            {/* Section Main Title */}
+            <div>
+              <StaggerText
+                as="h2"
+                text="Habilidade & Tecnologias"
+                divideBy="word"
+                delay={0.1}
+                className="text-3xl sm:text-4xl lg:text-5xl font-display font-black text-white tracking-tight uppercase"
+              />
+              <p className="mt-3 text-sm text-white/50 leading-relaxed font-sans max-w-md">
+                Passe o mouse sobre os blocos da matriz 3D para inspecionar os detalhes técnicos de cada ferramenta.
+              </p>
+            </div>
 
-                  // Coordinates
-                  const x = radius.x * Math.sin(itemAngle);
-                  const y = radius.y * Math.cos(itemAngle);
-                  
-                  // Math translation for depth (from -1 behind to +1 front)
-                  const z = Math.cos(itemAngle); 
-                  const depthFactor = (z + 1) / 2; // Normalizes depth between [0, 1]
+            {/* Clean Minimalist Technology Card (without extra clutter) */}
+            <div className="relative border border-white/10 bg-[#0a0a0a]/90 backdrop-blur-md p-6 sm:p-8 rounded-xl shadow-xl min-h-[170px] flex flex-col justify-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTech.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: animationsEnabled ? 0.18 : 0 }}
+                  className="space-y-3"
+                >
+                  {/* Technology Icon + Title */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center p-2.5">
+                      {activeTech.icon}
+                    </div>
 
-                  // Scalers
-                  const scale = 0.65 + 0.45 * depthFactor; // [0.65, 1.1]
-                  const opacity = 0.25 + 0.75 * depthFactor; // [0.25, 1.0]
-                  const zIndex = Math.round(10 + 90 * depthFactor); // [10, 100]
-                  const blur = (1 - depthFactor) * 3; // [3px blur in background, 0px in foreground]
+                    <h3 className="text-2xl sm:text-3xl font-display font-bold text-white uppercase tracking-wider">
+                      {activeTech.name}
+                    </h3>
+                  </div>
 
-                  const isHovered = hoveredTech?.name === tech.name;
-
-                  return (
-                    <motion.div
-                      key={`${activeTab}-${tech.name}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: opacity }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.4, ease: "easeOut" }}
-                      style={{
-                        position: "absolute",
-                        left: `calc(50% + ${x}px)`,
-                        top: `calc(50% + ${y}px - 20px)`, // Shunted upward by 20px
-                        transform: `translate(-50%, -50%) scale(${scale})`, // Hard translation prevents Framer Motion override
-                        zIndex: zIndex,
-                        filter: `blur(${blur}px)`,
-                      }}
-                      className="absolute origin-center"
-                    >
-                      <button
-                        onMouseEnter={() => {
-                          isHoveringWheel.current = true;
-                          setHoveredTech(tech);
-                        }}
-                        onClick={() => setHoveredTech(tech)}
-                        className={`w-16 h-16 sm:w-20 sm:h-20 bg-[#0d0d0d]/90 border border-white/10 relative transition-all duration-300 rounded-none group focus:outline-none ${
-                          isHovered 
-                            ? "border-[#5DADE2] shadow-[0_0_25px_rgba(93,173,226,0.15)] bg-black" 
-                            : "hover:border-white/20 hover:bg-[#121212]"
-                        }`}
-                        style={{
-                          boxShadow: isHovered
-                            ? `0 0 25px ${tech.color}1e`
-                            : undefined,
-                          borderColor: isHovered ? tech.color : undefined,
-                        }}
-                      >
-                        {/* Futuristic HUD corner ticks on hover */}
-                        {isHovered && (
-                          <>
-                            <span className="absolute top-[-1px] left-[-1px] w-2 h-2 border-t border-l" style={{ borderColor: tech.color }} />
-                            <span className="absolute top-[-1px] right-[-1px] w-2 h-2 border-t border-r" style={{ borderColor: tech.color }} />
-                            <span className="absolute bottom-[-1px] left-[-1px] w-2 h-2 border-b border-l" style={{ borderColor: tech.color }} />
-                            <span className="absolute bottom-[-1px] right-[-1px] w-2 h-2 border-b border-r" style={{ borderColor: tech.color }} />
-                          </>
-                        )}
-                        
-                        {/* Perfect flex layout inside the box */}
-                        <div className="flex flex-col items-center justify-between h-full py-3">
-                          <div className="flex-1 flex items-center justify-center">
-                            <div className="transition-transform duration-300 group-hover:scale-110">
-                              {tech.icon}
-                            </div>
-                          </div>
-
-                          <span className="text-[8px] font-mono text-white/40 tracking-wider uppercase group-hover:text-white/60 transition-colors">
-                            {tech.name}
-                          </span>
-                        </div>
-                      </button>
-                    </motion.div>
-                  );
-                })}
+                  {/* Technology Technical Description */}
+                  <p className="text-sm sm:text-base text-white/60 leading-relaxed font-sans">
+                    {activeTech.desc}
+                  </p>
+                </motion.div>
               </AnimatePresence>
             </div>
-          ) : (
-            /* ================= STATIC ACCESS ACCESSIBLE FALLBACK GRID ================= */
-            <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-6 py-6 z-10">
-              {activeTechs.map((tech) => (
-                <button
-                  key={`static-${tech.name}`}
-                  onClick={() => setHoveredTech(tech)}
-                  className={`p-5 bg-[#0d0d0d] border flex flex-col items-center gap-4 text-center rounded-none transition-all duration-300 ${
-                    hoveredTech?.name === tech.name
-                      ? "border-[#5DADE2] bg-[#0d0d0d]"
-                      : "border-white/5 hover:border-white/25"
-                  }`}
-                  style={{
-                    borderColor: hoveredTech?.name === tech.name ? tech.color : undefined,
-                  }}
-                >
-                  <div className="w-12 h-12 bg-white/5 border border-white/10 flex items-center justify-center">
-                    {tech.icon}
-                  </div>
-                  <span className="text-xs font-display font-bold uppercase tracking-wider text-white">
-                    {tech.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
 
-          {/* Detailed Info Panel below the orbiting wheel */}
-          <div className="w-full max-w-2xl border border-white/5 bg-[#0d0d0d] p-6 relative overflow-hidden flex flex-col justify-between min-h-[110px] mt-24 rounded-none z-10">
-            {/* Left corner accent */}
-            <div
-              className="absolute left-0 top-0 bottom-0 w-[3px]"
-              style={{
-                backgroundColor: hoveredTech?.color || "#5DADE2",
-                boxShadow: hoveredTech ? `0 0 15px ${hoveredTech.color}` : undefined,
+          </div>
+
+          {/* ==================================================== */}
+          {/* RIGHT COLUMN: Inspira UI 3D Animate Grid             */}
+          {/* ==================================================== */}
+          <div className="lg:col-span-7 flex items-center justify-center relative min-h-[460px]">
+            <AnimateGrid
+              cards={TECH_DATA}
+              hoveredIndex={hoveredIndex}
+              onHoverIndex={(idx) => {
+                if (idx !== null) {
+                  setHoveredIndex(idx);
+                }
               }}
+              perspective={600}
+              rotateX={isMobile ? 0 : -1}
+              rotateY={isMobile ? 0 : -15}
+              glowColor="#38ef7d"
             />
-            
-            {hoveredTech ? (
-              <motion.div
-                key={hoveredTech.name}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: animationsEnabled ? 0.2 : 0 }}
-                className="space-y-2"
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 border"
-                    style={{
-                      borderColor: `${hoveredTech.color}30`,
-                      color: hoveredTech.color,
-                      backgroundColor: `${hoveredTech.color}0a`,
-                    }}
-                  >
-                    {activeTab === "frontend"
-                      ? "Front-end"
-                      : activeTab === "backend"
-                      ? "Back-end"
-                      : activeTab === "database"
-                      ? "Banco de Dados"
-                      : "DevOps & Tools"}
-                  </span>
-                  <h3 className="text-base font-display font-bold text-white uppercase tracking-wider">
-                    {hoveredTech.name}
-                  </h3>
-                </div>
-                
-                <p className="text-xs text-white/55 leading-relaxed font-sans">
-                  {hoveredTech.desc}
-                </p>
-              </motion.div>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-xs text-white/30 font-sans italic">
-                  Passe o mouse sobre uma tecnologia para ler os detalhes técnicos.
-                </p>
-              </div>
-            )}
           </div>
 
         </div>
-
       </div>
     </section>
   );
 };
+export default Stacks;

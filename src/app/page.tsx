@@ -7,7 +7,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Stacks } from "@/components/Stacks";
 import { Projects } from "@/components/Projects";
-import { Certificates } from "@/components/Certificates";
+import { Services } from "@/components/Services";
 import { Footer } from "@/components/Footer";
 
 export default function Home() {
@@ -74,7 +74,7 @@ export default function Home() {
       {/* Schema Markup for Search Engines */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData).replace(/</g, "\\u003c") }}
       />
 
       {/* Fixed Navigation Header */}
@@ -84,7 +84,7 @@ export default function Home() {
       <Hero />
       <Stacks />
       <Projects />
-      <Certificates />
+      <Services />
       <Footer />
     </main>
   );
