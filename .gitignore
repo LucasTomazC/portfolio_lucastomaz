@@ -74,3 +74,6 @@ Desktop.ini
 .gemini/
 .claude/
 
+# Markdown documentation & planning files
+*.md
+
